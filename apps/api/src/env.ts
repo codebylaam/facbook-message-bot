@@ -21,6 +21,8 @@ export const env = parseEnv(
     CF_EMBED_MODEL: z.string().default("@cf/baai/bge-m3"),
 
     EMBED_URL: z.string().default(""),
+
+    REPLY_DEBOUNCE_SECONDS: z.coerce.number().int().nonnegative().default(6),
   }),
   process.env,
 );

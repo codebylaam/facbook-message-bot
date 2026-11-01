@@ -19,6 +19,9 @@ export const env = parseEnv(
     META_GRAPH_VERSION: z.string().default("v23.0"),
 
     TOKEN_ENC_KEY: z.string().default(""),
+
+    DEFAULT_AI_REPLIES_LIMIT: z.coerce.number().int().positive().default(1000),
+    REPLY_TYPING_DELAY_MS: z.coerce.number().int().nonnegative().default(700),
   }),
   process.env,
 );

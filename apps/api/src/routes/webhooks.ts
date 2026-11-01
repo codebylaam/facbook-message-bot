@@ -1,9 +1,12 @@
 import { findPageByFbPageId, markWebhookEvent, recordWebhookEvent } from "@fb-bot/db";
 import { parseWebhookPayload, SIGNATURE_HEADER, verifySignature } from "@fb-bot/meta";
+import { QUEUES } from "@fb-bot/shared";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { db } from "../db.ts";
 import { env, isMetaConfigured } from "../env.ts";
+import { enqueue } from "../queue.ts";
+import { handleMessageEntry } from "../services/inbound.ts";
 
 export const webhookRoute = new Hono();
 
@@ -23,6 +26,10 @@ webhookRoute.get("/", (c) => {
   return c.text(challenge);
 });
 
+/**
+ * Meta retries on any slow or failed delivery, so the upsert of the raw event is
+ * the only work that must not fail. Everything after it is best effort and logged.
+ */
 webhookRoute.post("/", async (c) => {
   if (!isMetaConfigured) {
     throw new HTTPException(503, {
@@ -51,6 +58,19 @@ webhookRoute.post("/", async (c) => {
     throw new HTTPException(400, { message: "Unrecognised webhook payload" });
   }
 
+  const enqueueReply = async (conversationId: string) => {
+    // One job per conversation, six seconds after the first message, so a burst
+    // of short messages becomes a single answer.
+    await enqueue(
+      QUEUES.reply,
+      { conversationId },
+      {
+        singletonKey: conversationId,
+        startAfterSeconds: env.REPLY_DEBOUNCE_SECONDS,
+      },
+    );
+  };
+
   for (const entry of entries) {
     const page = await findPageByFbPageId(db, entry.fbPageId);
 
@@ -64,6 +84,27 @@ webhookRoute.post("/", async (c) => {
 
     if (record && entry.field === "unknown") {
       await markWebhookEvent(db, { id: record.id, status: "ignored" });
+    }
+
+    if (entry.field !== "messages" || !record) {
+      continue;
+    }
+
+    try {
+      const outcome = await handleMessageEntry({ db, enqueueReply }, entry.entry);
+
+      if (outcome.reason) {
+        await markWebhookEvent(db, { id: record.id, status: "ignored", error: outcome.reason });
+      } else {
+        await markWebhookEvent(db, { id: record.id, status: "processed" });
+      }
+    } catch (error) {
+      console.error("[api] could not process an inbound message", error);
+      await markWebhookEvent(db, {
+        id: record.id,
+        status: "failed",
+        error: error instanceof Error ? error.message : "unknown error",
+      });
     }
   }
 

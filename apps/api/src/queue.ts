@@ -1,4 +1,4 @@
-import { QUEUES, type QueueName } from "@fb-bot/shared";
+import { ensureQueues, type QueueName } from "@fb-bot/shared";
 import { PgBoss } from "pg-boss";
 import { env } from "./env.ts";
 
@@ -12,9 +12,7 @@ async function getBoss(): Promise<PgBoss> {
     });
     await boss.start();
 
-    for (const queue of Object.values(QUEUES)) {
-      await boss.createQueue(queue);
-    }
+    await ensureQueues(boss, (message) => console.warn(message));
 
     return boss;
   })();
@@ -22,9 +20,22 @@ async function getBoss(): Promise<PgBoss> {
   return bossPromise;
 }
 
-export async function enqueue(queue: QueueName, data: Record<string, unknown>): Promise<void> {
+export type EnqueueOptions = {
+  /** Collapses a burst into one job while a job with the same key is pending. */
+  singletonKey?: string;
+  startAfterSeconds?: number;
+};
+
+export async function enqueue(
+  queue: QueueName,
+  data: Record<string, unknown>,
+  options: EnqueueOptions = {},
+): Promise<void> {
   const boss = await getBoss();
-  await boss.send(queue, data);
+  await boss.send(queue, data, {
+    ...(options.singletonKey ? { singletonKey: options.singletonKey } : {}),
+    ...(options.startAfterSeconds === undefined ? {} : { startAfter: options.startAfterSeconds }),
+  });
 }
 
 export async function closeQueue(): Promise<void> {

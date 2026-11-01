@@ -6,4 +6,5 @@ export * from "./oauth.ts";
 export * from "./pages.ts";
 export * from "./posts.ts";
 export * from "./profile.ts";
+export * from "./send.ts";
 export * from "./webhook.ts";

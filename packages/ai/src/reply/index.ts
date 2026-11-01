@@ -4,4 +4,5 @@ export * from "./generate.ts";
 export * from "./prompt.ts";
 export * from "./query-rewrite.ts";
 export * from "./schema.ts";
+export * from "./summary.ts";
 export * from "./types.ts";

@@ -19,3 +19,4 @@
 - Keeps the dev machine lean: wants resource-heavy local services (e.g. a self-hosted embedding-model container) torn down promptly rather than left running idle. Confidence: 0.6
 - Expects to be asked before pulling large images, installing multi-GB dependencies, or starting processes that consume significant RAM/disk — a buried note is not consent for resource-heavy setup. Confidence: 0.7
 - Prefers model/AI capabilities be reached through hosted provider APIs (e.g. the CommandCode Provider API, Cloudflare Workers AI) rather than self-hosting or installing anything locally. Confidence: 0.7
+- Readily supplies real provider credentials when asked, so external integrations are verified against the live service rather than trusted from stubs/mocks. Confidence: 0.55

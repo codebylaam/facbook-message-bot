@@ -1,4 +1,4 @@
-import { QUEUE_NAMES } from "@fb-bot/shared";
+import { ensureQueues, QUEUE_NAMES } from "@fb-bot/shared";
 import { PgBoss } from "pg-boss";
 import { closeDb, getEncryptionKey } from "./deps.ts";
 import { env } from "./env.ts";
@@ -15,9 +15,7 @@ getEncryptionKey();
 
 await boss.start();
 
-for (const queue of QUEUE_NAMES) {
-  await boss.createQueue(queue);
-}
+await ensureQueues(boss, (message) => console.warn(message));
 
 await registerHandlers(boss);
 

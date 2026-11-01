@@ -3,10 +3,15 @@ import type { PgBoss } from "pg-boss";
 import { createDeps } from "./deps.ts";
 import { ingestPage } from "./jobs/ingest-page.ts";
 import { reembedSourceById } from "./jobs/reembed.ts";
+import { handleReply, type ReplyJob } from "./jobs/reply.ts";
 import { syncPagePosts } from "./jobs/sync-posts.ts";
 
 export async function registerHandlers(boss: PgBoss): Promise<void> {
   const deps = createDeps();
+
+  const enqueueReply = async (conversationId: string) => {
+    await boss.send(QUEUES.reply, { conversationId });
+  };
 
   await boss.work(QUEUES.ingestPage, async (jobs) => {
     const [job] = jobs;
@@ -48,7 +53,16 @@ export async function registerHandlers(boss: PgBoss): Promise<void> {
   });
 
   await boss.work(QUEUES.reply, async (jobs) => {
-    console.log(`[worker] ${QUEUES.reply}: ${jobs.length} job(s), handled by the phase 6 pipeline`);
+    const [job] = jobs;
+
+    if (!job) {
+      return;
+    }
+
+    const result = await handleReply(deps, job.data as ReplyJob, { enqueueReply });
+    console.log(
+      `[worker] reply ${result.conversationId}: ${result.action}${result.reason ? ` (${result.reason})` : ""}`,
+    );
   });
 
   await boss.work(QUEUES.comment, async (jobs) => {
