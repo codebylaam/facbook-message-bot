@@ -13,6 +13,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppInboxRouteImport } from './routes/_app/inbox'
 import { Route as AppKnowledgeRouteImport } from './routes/_app/knowledge'
 import { Route as AppOnboardingRouteImport } from './routes/_app/onboarding'
 import { Route as AppPagesRouteImport } from './routes/_app/pages'
@@ -36,6 +37,11 @@ const SignUpRoute = SignUpRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInboxRoute = AppInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
   getParentRoute: () => AppRoute,
 } as any)
 const AppKnowledgeRoute = AppKnowledgeRouteImport.update({
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/inbox': typeof AppInboxRoute
   '/knowledge': typeof AppKnowledgeRoute
   '/onboarding': typeof AppOnboardingRoute
   '/pages': typeof AppPagesRoute
@@ -77,6 +84,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/inbox': typeof AppInboxRoute
   '/knowledge': typeof AppKnowledgeRoute
   '/onboarding': typeof AppOnboardingRoute
   '/pages': typeof AppPagesRoute
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/_app/inbox': typeof AppInboxRoute
   '/_app/knowledge': typeof AppKnowledgeRoute
   '/_app/onboarding': typeof AppOnboardingRoute
   '/_app/pages': typeof AppPagesRoute
@@ -102,6 +111,7 @@ export interface FileRouteTypes {
     | '/'
     | '/sign-in'
     | '/sign-up'
+    | '/inbox'
     | '/knowledge'
     | '/onboarding'
     | '/pages'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
   to:
     | '/sign-in'
     | '/sign-up'
+    | '/inbox'
     | '/knowledge'
     | '/onboarding'
     | '/pages'
@@ -122,6 +133,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/sign-in'
     | '/sign-up'
+    | '/_app/inbox'
     | '/_app/knowledge'
     | '/_app/onboarding'
     | '/_app/pages'
@@ -166,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/inbox': {
+      id: '/_app/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof AppInboxRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/knowledge': {
       id: '/_app/knowledge'
       path: '/knowledge'
@@ -205,6 +224,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppInboxRoute: typeof AppInboxRoute
   AppKnowledgeRoute: typeof AppKnowledgeRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppPagesRoute: typeof AppPagesRoute
@@ -214,6 +234,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppInboxRoute: AppInboxRoute,
   AppKnowledgeRoute: AppKnowledgeRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppPagesRoute: AppPagesRoute,

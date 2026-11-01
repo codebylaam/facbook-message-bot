@@ -104,3 +104,13 @@ export async function clearDrafts(db: Db, conversationId: string) {
 
   return cleared.length;
 }
+
+export async function updateMessageText(db: Db, messageId: string, text: string) {
+  const [message] = await db
+    .update(messages)
+    .set({ text })
+    .where(eq(messages.id, messageId))
+    .returning();
+
+  return message;
+}
