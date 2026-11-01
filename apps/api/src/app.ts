@@ -10,6 +10,7 @@ import { healthRoute } from "./routes/health.ts";
 import { knowledgeRoute } from "./routes/knowledge.ts";
 import { meRoute } from "./routes/me.ts";
 import { pagesRoute } from "./routes/pages.ts";
+import { playgroundRoute } from "./routes/playground.ts";
 import { policiesRoute } from "./routes/policies.ts";
 import { postsRoute } from "./routes/posts.ts";
 import { productsRoute } from "./routes/products.ts";
@@ -33,6 +34,7 @@ export function createApp() {
   app.route("/api/policies", policiesRoute);
   app.route("/api/posts", postsRoute);
   app.route("/api/knowledge", knowledgeRoute);
+  app.route("/api/playground", playgroundRoute);
   app.route("/webhooks/meta", webhookRoute);
 
   return app;

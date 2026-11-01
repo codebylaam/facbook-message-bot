@@ -14,6 +14,7 @@
       "name": "@fb-bot/api",
       "version": "0.0.0",
       "dependencies": {
+        "@fb-bot/ai": "workspace:*",
         "@fb-bot/db": "workspace:*",
         "@fb-bot/meta": "workspace:*",
         "@fb-bot/shared": "workspace:*",

@@ -170,4 +170,24 @@ describe("hybridSearch", () => {
 
     expect(results[0]?.id).toBe(textMatchId);
   });
+
+  test("falls back to text search when there is no embedding", async () => {
+    const results = await hybridSearch(db, { pageId, query: "delivery charge dhaka" });
+
+    expect(results[0]?.id).toBe(textMatchId);
+    expect(results[0]?.vectorRank).toBeNull();
+    expect(results[0]?.textRank).toBe(1);
+  });
+
+  test("never returns another page's chunks in text only mode", async () => {
+    const results = await hybridSearch(db, { pageId, query: "delivery charge dhaka" });
+
+    expect(results.some((result) => result.content === OTHER_PAGE_TEXT)).toBe(false);
+  });
+
+  test("returns nothing for a query that matches no chunk", async () => {
+    const results = await hybridSearch(db, { pageId, query: "zzzzqqqqxxxx" });
+
+    expect(results).toEqual([]);
+  });
 });

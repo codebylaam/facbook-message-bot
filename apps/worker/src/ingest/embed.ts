@@ -9,6 +9,8 @@ export type EmbedSourceInput = {
   text: string;
 };
 
+let warnedAboutMissingProvider = false;
+
 export async function reembedSource(deps: WorkerDeps, input: EmbedSourceInput): Promise<number> {
   const text = input.text.replace(/\s+/g, " ").trim();
 
@@ -18,7 +20,17 @@ export async function reembedSource(deps: WorkerDeps, input: EmbedSourceInput): 
   }
 
   const chunks = chunkText(text);
-  const vectors = await deps.embeddings.embed(chunks);
+
+  if (!deps.embeddings && !warnedAboutMissingProvider) {
+    warnedAboutMissingProvider = true;
+    console.warn(
+      "[worker] no embeddings provider is configured, so chunks are stored without vectors and search stays keyword only",
+    );
+  }
+
+  // A missing provider is a supported degraded state: keep the text searchable and
+  // leave the vector empty so a later backfill can fill it in.
+  const vectors = deps.embeddings ? await deps.embeddings.embed(chunks) : null;
 
   await replaceChunksForSource(deps.db, {
     pageId: input.pageId,
@@ -26,7 +38,7 @@ export async function reembedSource(deps: WorkerDeps, input: EmbedSourceInput): 
     sourceId: input.sourceId,
     chunks: chunks.map((content, index) => ({
       content,
-      embedding: vectors[index] ?? null,
+      embedding: vectors?.[index] ?? null,
     })),
   });
 

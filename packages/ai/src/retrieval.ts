@@ -14,8 +14,8 @@ export type RetrievedChunk = {
 
 export type HybridSearchInput = {
   pageId: string;
-  embedding: number[];
   query: string;
+  embedding?: number[] | null;
   limit?: number;
   candidateLimit?: number;
   rrfK?: number;
@@ -33,16 +33,27 @@ export async function hybridSearch(db: Db, input: HybridSearchInput): Promise<Re
   const limit = input.limit ?? DEFAULT_RESULT_LIMIT;
   const candidateLimit = input.candidateLimit ?? DEFAULT_CANDIDATE_LIMIT;
   const rrfK = input.rrfK ?? DEFAULT_RRF_K;
-  const vector = toVectorLiteral(input.embedding);
+  const embedding = input.embedding ?? null;
+  const vector = embedding ? toVectorLiteral(embedding) : "";
+
+  // Without an embedding the search degrades to full-text plus trigram, which keeps
+  // the playground and any embeddings outage usable instead of failing the request.
+  const vectorCte = embedding
+    ? sql`vector_hits as (
+        select id, (row_number() over (order by embedding <=> ${vector}::vector))::int as rank
+        from knowledge_chunks
+        where page_id = ${input.pageId} and embedding is not null
+        order by embedding <=> ${vector}::vector
+        limit ${candidateLimit}
+      ),`
+    : sql``;
+
+  const vectorUnion = embedding
+    ? sql`union all select id, rank, 'vector' as source from vector_hits`
+    : sql``;
 
   const rows = await db.execute(sql`
-    with vector_hits as (
-      select id, (row_number() over (order by embedding <=> ${vector}::vector))::int as rank
-      from knowledge_chunks
-      where page_id = ${input.pageId} and embedding is not null
-      order by embedding <=> ${vector}::vector
-      limit ${candidateLimit}
-    ),
+    with ${vectorCte}
     text_hits as (
       select id, (row_number() over (
         order by ts_rank_cd(tsv, plainto_tsquery('simple', ${input.query})) desc
@@ -58,11 +69,10 @@ export async function hybridSearch(db: Db, input: HybridSearchInput): Promise<Re
       limit ${candidateLimit}
     ),
     all_hits as (
-      select id, rank, 'vector' as source from vector_hits
-      union all
       select id, rank, 'text' as source from text_hits
       union all
       select id, rank, 'trigram' as source from trigram_hits
+      ${vectorUnion}
     ),
     fused as (
       select

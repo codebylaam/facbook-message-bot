@@ -19,21 +19,5 @@ services:
       start_period: 10s
     restart: unless-stopped
 
-  embeddings:
-    image: ghcr.io/huggingface/text-embeddings-inference:cpu-latest
-    command: ["--model-id", "BAAI/bge-m3", "--max-client-batch-size", "32"]
-    ports:
-      - "8080:80"
-    volumes:
-      - model-cache:/data
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:80/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 120s
-    restart: unless-stopped
-
 volumes:
   pgdata:
-  model-cache:

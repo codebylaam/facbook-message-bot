@@ -16,6 +16,7 @@ import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppKnowledgeRouteImport } from './routes/_app/knowledge'
 import { Route as AppOnboardingRouteImport } from './routes/_app/onboarding'
 import { Route as AppPagesRouteImport } from './routes/_app/pages'
+import { Route as AppPlaygroundRouteImport } from './routes/_app/playground'
 import { Route as AppProductsRouteImport } from './routes/_app/products'
 
 const AppRoute = AppRouteImport.update({
@@ -52,6 +53,11 @@ const AppPagesRoute = AppPagesRouteImport.update({
   path: '/pages',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPlaygroundRoute = AppPlaygroundRouteImport.update({
+  id: '/playground',
+  path: '/playground',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProductsRoute = AppProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/knowledge': typeof AppKnowledgeRoute
   '/onboarding': typeof AppOnboardingRoute
   '/pages': typeof AppPagesRoute
+  '/playground': typeof AppPlaygroundRoute
   '/products': typeof AppProductsRoute
 }
 export interface FileRoutesByTo {
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/knowledge': typeof AppKnowledgeRoute
   '/onboarding': typeof AppOnboardingRoute
   '/pages': typeof AppPagesRoute
+  '/playground': typeof AppPlaygroundRoute
   '/products': typeof AppProductsRoute
   '/': typeof AppIndexRoute
 }
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/_app/knowledge': typeof AppKnowledgeRoute
   '/_app/onboarding': typeof AppOnboardingRoute
   '/_app/pages': typeof AppPagesRoute
+  '/_app/playground': typeof AppPlaygroundRoute
   '/_app/products': typeof AppProductsRoute
   '/_app/': typeof AppIndexRoute
 }
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/onboarding'
     | '/pages'
+    | '/playground'
     | '/products'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/onboarding'
     | '/pages'
+    | '/playground'
     | '/products'
     | '/'
   id:
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/_app/knowledge'
     | '/_app/onboarding'
     | '/_app/pages'
+    | '/_app/playground'
     | '/_app/products'
     | '/_app/'
   fileRoutesById: FileRoutesById
@@ -175,6 +187,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPagesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/playground': {
+      id: '/_app/playground'
+      path: '/playground'
+      fullPath: '/playground'
+      preLoaderRoute: typeof AppPlaygroundRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/products': {
       id: '/_app/products'
       path: '/products'
@@ -189,6 +208,7 @@ interface AppRouteChildren {
   AppKnowledgeRoute: typeof AppKnowledgeRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppPagesRoute: typeof AppPagesRoute
+  AppPlaygroundRoute: typeof AppPlaygroundRoute
   AppProductsRoute: typeof AppProductsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -197,6 +217,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppKnowledgeRoute: AppKnowledgeRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppPagesRoute: AppPagesRoute,
+  AppPlaygroundRoute: AppPlaygroundRoute,
   AppProductsRoute: AppProductsRoute,
   AppIndexRoute: AppIndexRoute,
 }

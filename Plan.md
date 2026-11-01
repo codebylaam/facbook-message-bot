@@ -10,7 +10,7 @@ A one-person e-commerce seller gets thousands of Messenger messages and comments
 - **Product data:** a manual catalog, plus products the AI extracts from posts.
 - **Billing:** plans and usage limits, assigned manually by an admin for now. No payment gateway yet.
 - **LLM:** CommandCode Provider API, which is OpenAI-compatible. Base URL `https://api.commandcode.ai/provider/v1`, model `deepseek/deepseek-v4-flash`.
-- **Embeddings:** CommandCode has no embeddings endpoint, so we self-host **bge-m3**. It's multilingual and handles Bangla, and it runs in a HuggingFace text-embeddings-inference container. Vectors are stored in pgvector.
+- **Embeddings:** CommandCode has no embeddings endpoint, so embeddings come from **Cloudflare Workers AI** running `@cf/baai/bge-m3`. It is the same multilingual model, returns 1024 dimensions to match `vector(1024)`, and has a free daily allowance, so nothing runs locally. Vectors are stored in pgvector. `resolveEmbeddingsClient` falls back to a self-hosted text-embeddings-inference server only if one is configured, and to keyword-only search when none is.
 - **Meta app:** not created yet. Development uses dev mode with the seller's own test Page. App Review and Business Verification are a separate phase.
 - **Stack:**
   - Bun everywhere.
@@ -28,7 +28,7 @@ Facebook ──webhook──▶ api (Hono) ──enqueue──▶ pg-boss (Postg
                                                   ├─ ingest: page info, posts → extract products → embed
                                                   ├─ reply: debounce → retrieve (pgvector+trgm) → DeepSeek → send/handoff
                                                   └─ comments: classify → private reply / public reply
-                       Postgres 17 + pgvector  ·  embeddings (TEI bge-m3)
+                       Postgres 17 + pgvector  ·  embeddings (Cloudflare Workers AI, bge-m3)
 ```
 
 ## Monorepo layout (Bun workspaces)
@@ -175,7 +175,7 @@ Image-only messages and unknown attachments are handed off in the MVP. Shared po
 
 - **Services:**
   - `postgres`: `pgvector/pgvector:pg17`, with a volume and a healthcheck.
-  - `embeddings`: `ghcr.io/huggingface/text-embeddings-inference:cpu-latest`, model `BAAI/bge-m3`, with a model cache volume.
+  - `embeddings`: not a container. `@cf/baai/bge-m3` is called over HTTP from Cloudflare Workers AI; a self-hosted `text-embeddings-inference` server is optional and only used when `EMBED_URL` is set.
   - `api` and `worker`: `oven/bun` multi-stage images.
   - `web`: Vite build served by a small Bun static server, or Caddy.
 - **Development:** `compose.dev.yaml` bind-mounts the source and runs `bun --watch`, plus a `cloudflared` tunnel profile for webhooks.

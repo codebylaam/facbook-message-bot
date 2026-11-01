@@ -363,4 +363,47 @@ describe("reembedSourceById", () => {
 
     expect(chunks.some((chunk) => chunk.sourceId === product.id)).toBe(true);
   });
+
+  test("stores chunks without vectors when no embeddings provider is configured", async () => {
+    const [post] = await listPostsForPage(db, pageId);
+
+    if (!post) {
+      throw new Error("expected a stored post");
+    }
+
+    const result = await reembedSourceById(deps({ embeddings: null }), {
+      pageId,
+      sourceType: "post",
+      sourceId: post.id,
+    });
+
+    expect(result.skipped).toBe(false);
+    expect(result.chunks).toBeGreaterThan(0);
+
+    const rows = await db
+      .select({ embedding: knowledgeChunks.embedding })
+      .from(knowledgeChunks)
+      .where(eq(knowledgeChunks.sourceId, post.id));
+
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((row) => row.embedding === null)).toBe(true);
+  });
+
+  test("backfills vectors once a provider is configured again", async () => {
+    const [post] = await listPostsForPage(db, pageId);
+
+    if (!post) {
+      throw new Error("expected a stored post");
+    }
+
+    await reembedSourceById(deps(), { pageId, sourceType: "post", sourceId: post.id });
+
+    const rows = await db
+      .select({ embedding: knowledgeChunks.embedding })
+      .from(knowledgeChunks)
+      .where(eq(knowledgeChunks.sourceId, post.id));
+
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((row) => row.embedding?.length === 1024)).toBe(true);
+  });
 });

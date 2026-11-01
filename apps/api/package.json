@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@fb-bot/ai": "workspace:*",
     "@fb-bot/db": "workspace:*",
     "@fb-bot/meta": "workspace:*",
     "@fb-bot/shared": "workspace:*",

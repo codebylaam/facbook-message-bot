@@ -1,8 +1,8 @@
 import {
-  createEmbeddingsClient,
   createLlmClient,
   type EmbeddingsClient,
   type LlmClient,
+  resolveEmbeddingsClient,
 } from "@fb-bot/ai";
 import { createDb } from "@fb-bot/db";
 import { createGraphApi, type GraphApi, type MetaConfig, parseEncryptionKey } from "@fb-bot/meta";
@@ -21,7 +21,8 @@ export type WorkerDeps = {
   db: typeof db;
   graphApi: GraphApi;
   llm: LlmClient;
-  embeddings: EmbeddingsClient;
+  /** Null means no embeddings provider is configured; chunks get no vector. */
+  embeddings: EmbeddingsClient | null;
   encryptionKey: Buffer;
 };
 
@@ -44,7 +45,14 @@ export function createDeps(overrides: Partial<WorkerDeps> = {}): WorkerDeps {
       baseUrl: env.CMD_BASE_URL,
       model: env.LLM_MODEL,
     }),
-    embeddings: createEmbeddingsClient({ baseUrl: env.EMBED_URL }),
+    embeddings: resolveEmbeddingsClient({
+      workersAi: {
+        accountId: env.CF_ACCOUNT_ID,
+        apiToken: env.CF_API_TOKEN,
+        model: env.CF_EMBED_MODEL,
+      },
+      tei: { baseUrl: env.EMBED_URL },
+    }),
     encryptionKey: getEncryptionKey(),
     ...overrides,
   };

@@ -7,7 +7,11 @@ export const env = parseEnv(
     CMD_BASE_URL: z.string().default("https://api.commandcode.ai/provider/v1"),
     LLM_MODEL: z.string().default("deepseek/deepseek-v4-flash"),
 
-    EMBED_URL: z.string().default("http://localhost:8080"),
+    CF_ACCOUNT_ID: z.string().default(""),
+    CF_API_TOKEN: z.string().default(""),
+    CF_EMBED_MODEL: z.string().default("@cf/baai/bge-m3"),
+
+    EMBED_URL: z.string().default(""),
 
     META_APP_ID: z.string().default(""),
     META_APP_SECRET: z.string().default(""),
