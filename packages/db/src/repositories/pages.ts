@@ -52,6 +52,27 @@ export async function createPageForOwner(db: Db, ownerId: string, input: NewFbPa
   return page;
 }
 
+export async function upsertPageForOwner(
+  db: Db,
+  ownerId: string,
+  input: { fbPageId: string; name: string; accessTokenEncrypted: string },
+) {
+  const [page] = await db
+    .insert(fbPages)
+    .values({ ...input, ownerId })
+    .onConflictDoUpdate({
+      target: fbPages.fbPageId,
+      set: {
+        name: input.name,
+        accessTokenEncrypted: input.accessTokenEncrypted,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+
+  return page;
+}
+
 export async function updatePageForOwner(
   db: Db,
   ownerId: string,

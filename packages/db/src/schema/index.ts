@@ -5,3 +5,4 @@ export * from "./enums.ts";
 export * from "./knowledge.ts";
 export * from "./pages.ts";
 export * from "./types.ts";
+export * from "./webhooks.ts";

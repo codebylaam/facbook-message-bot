@@ -18,7 +18,10 @@ export const Route = createFileRoute("/_app")({
   component: AppLayout,
 });
 
-const NAV_ITEMS = [{ label: "Overview", href: "/" }] as const;
+const NAV_ITEMS = [
+  { label: "Overview", href: "/" },
+  { label: "Pages", href: "/pages" },
+] as const;
 
 function AppLayout() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });

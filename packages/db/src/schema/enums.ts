@@ -41,3 +41,11 @@ export const subscriptionStatusEnum = pgEnum("subscription_status", [
   "canceled",
 ]);
 export const webhookStatusEnum = pgEnum("webhook_status", ["pending", "active", "error"]);
+
+export const webhookFieldEnum = pgEnum("webhook_field", ["messages", "feed", "unknown"]);
+export const webhookEventStatusEnum = pgEnum("webhook_event_status", [
+  "received",
+  "processed",
+  "failed",
+  "ignored",
+]);

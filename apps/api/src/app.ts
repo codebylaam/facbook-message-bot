@@ -7,6 +7,8 @@ import type { AppEnv } from "./middleware/auth.ts";
 import { errorHandler } from "./middleware/error-handler.ts";
 import { healthRoute } from "./routes/health.ts";
 import { meRoute } from "./routes/me.ts";
+import { pagesRoute } from "./routes/pages.ts";
+import { webhookRoute } from "./routes/webhooks.ts";
 
 export function createApp() {
   const app = new Hono<AppEnv>();
@@ -20,6 +22,8 @@ export function createApp() {
 
   app.route("/health", healthRoute);
   app.route("/api/me", meRoute);
+  app.route("/api/pages", pagesRoute);
+  app.route("/webhooks/meta", webhookRoute);
 
   return app;
 }
