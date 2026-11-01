@@ -3,6 +3,8 @@ import type { MetaConfig } from "./config.ts";
 import { createGraphApi } from "./graph.ts";
 import {
   extractSharedPostUrl,
+  replyToComment,
+  sendPrivateReply,
   sendSenderAction,
   sendTextMessage,
   showTypingThenWait,
@@ -131,5 +133,55 @@ describe("extractSharedPostUrl", () => {
 
   test("ignores a non post facebook link", () => {
     expect(extractSharedPostUrl("https://facebook.com/dhakathreads")).toBeNull();
+  });
+});
+
+describe("sendPrivateReply", () => {
+  test("addresses the comment instead of a person", async () => {
+    const { fetchImpl, calls } = createStubFetch([{ body: { message_id: "mid.private.1" } }]);
+
+    const result = await sendPrivateReply(createGraphApi(config, fetchImpl), {
+      pageId: "PAGE_1",
+      pageAccessToken: "t",
+      commentId: "COMMENT_1",
+      text: "দাম ১২০০ টাকা।",
+    });
+
+    expect(calls[0]?.url).toContain("/v23.0/PAGE_1/messages");
+    expect(bodyOf(calls[0])).toEqual({
+      messaging_type: "RESPONSE",
+      recipient: { comment_id: "COMMENT_1" },
+      message: { text: "দাম ১২০০ টাকা।" },
+    });
+    expect(result.messageId).toBe("mid.private.1");
+  });
+
+  test("reports a null id when facebook returns none", async () => {
+    const { fetchImpl } = createStubFetch([{ body: {} }]);
+
+    const result = await sendPrivateReply(createGraphApi(config, fetchImpl), {
+      pageId: "PAGE_1",
+      pageAccessToken: "t",
+      commentId: "COMMENT_1",
+      text: "hi",
+    });
+
+    expect(result.messageId).toBeNull();
+  });
+});
+
+describe("replyToComment", () => {
+  test("posts a public reply on the comment", async () => {
+    const { fetchImpl, calls } = createStubFetch([{ body: { id: "COMMENT_REPLY_1" } }]);
+
+    const result = await replyToComment(createGraphApi(config, fetchImpl), {
+      commentId: "COMMENT_1",
+      pageAccessToken: "t",
+      message: "ইনবক্সে বিস্তারিত দেওয়া হয়েছে",
+    });
+
+    expect(calls[0]?.url).toContain("/COMMENT_1/comments");
+    expect(bodyOf(calls[0])).toEqual({ message: "ইনবক্সে বিস্তারিত দেওয়া হয়েছে" });
+    expect(result.commentId).toBe("COMMENT_REPLY_1");
   });
 });

@@ -2,9 +2,10 @@ import type { Db } from "@fb-bot/db";
 import { sql } from "drizzle-orm";
 
 export type InboxEvent = {
-  conversationId: string;
   pageId: string;
-  kind: "handoff" | "draft" | "sent" | "lead";
+  kind: "handoff" | "draft" | "sent" | "lead" | "comment";
+  conversationId?: string;
+  commentId?: string;
   reason?: string | null;
 };
 

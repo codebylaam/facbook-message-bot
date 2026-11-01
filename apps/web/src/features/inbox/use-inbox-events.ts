@@ -17,6 +17,7 @@ export function useInboxEvents(queryClient: QueryClient): void {
       source.addEventListener("inbox", () => {
         void queryClient.invalidateQueries({ queryKey: ["conversations"] });
         void queryClient.invalidateQueries({ queryKey: ["conversation"] });
+        void queryClient.invalidateQueries({ queryKey: ["comments"] });
       });
 
       source.onerror = () => {

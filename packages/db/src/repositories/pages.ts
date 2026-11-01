@@ -1,9 +1,11 @@
 import { and, asc, desc, eq } from "drizzle-orm";
 import type { Db } from "../client.ts";
-import type { webhookStatusEnum } from "../schema/enums.ts";
+import type { commentModeEnum, webhookStatusEnum } from "../schema/enums.ts";
 import { fbPages } from "../schema/pages.ts";
+import type { HandoffRules, Persona } from "../schema/types.ts";
 
 export type WebhookStatus = (typeof webhookStatusEnum.enumValues)[number];
+export type CommentMode = (typeof commentModeEnum.enumValues)[number];
 
 export type NewFbPage = {
   fbPageId: string;
@@ -17,6 +19,10 @@ export type FbPageUpdate = Partial<{
   botEnabled: boolean;
   webhookStatus: WebhookStatus;
   lastSyncedAt: Date;
+  commentMode: CommentMode;
+  confidenceThreshold: number;
+  persona: Persona | null;
+  handoffRules: HandoffRules | null;
 }>;
 
 export async function listPagesForOwner(db: Db, ownerId: string) {

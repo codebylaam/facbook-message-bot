@@ -46,7 +46,7 @@ export async function rewriteQuery(
       { role: "system", content: REWRITE_SYSTEM_PROMPT },
       { role: "user", content: `${input.message}${context}` },
     ],
-    { json: true, temperature: 0, maxTokens: 200 },
+    { json: true, temperature: 0, maxTokens: 1500 },
   );
 
   const raw = queryRewriteSchema.parse(safeParse(completion.content));

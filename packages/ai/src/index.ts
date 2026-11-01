@@ -1,4 +1,5 @@
 export * from "./chunking.ts";
+export * from "./comment-classify.ts";
 export * from "./config.ts";
 export * from "./embeddings.ts";
 export * from "./embeddings-resolve.ts";

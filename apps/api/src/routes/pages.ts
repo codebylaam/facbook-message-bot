@@ -1,5 +1,10 @@
-import { findPageForOwner, listPagesForOwner } from "@fb-bot/db";
-import { connectPageSchema, discoverPagesSchema, QUEUES } from "@fb-bot/shared";
+import { findPageForOwner, listPagesForOwner, updatePageForOwner } from "@fb-bot/db";
+import {
+  connectPageSchema,
+  discoverPagesSchema,
+  QUEUES,
+  updatePageSettingsSchema,
+} from "@fb-bot/shared";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
@@ -123,6 +128,17 @@ pagesRoute.post("/:id/resync", async (c) => {
   await enqueue(QUEUES.ingestPage, { pageId: page.id });
 
   return c.json({ queued: true, pageId: page.id });
+});
+
+pagesRoute.patch("/:id/settings", zValidator("json", updatePageSettingsSchema), async (c) => {
+  const user = c.get("user");
+  const [page] = await updatePageForOwner(db, user.id, c.req.param("id"), c.req.valid("json"));
+
+  if (!page) {
+    throw new HTTPException(404, { message: "Page not found" });
+  }
+
+  return c.json({ page: toPageSummary(page) });
 });
 
 pagesRoute.delete("/:id", async (c) => {

@@ -25,7 +25,7 @@ export async function summarizeConversation(
       { role: "system", content: SUMMARY_PROMPT },
       { role: "user", content: `Shop: ${input.pageName}\n\n${transcript}` },
     ],
-    { json: true, temperature: 0, maxTokens: 300 },
+    { json: true, temperature: 0, maxTokens: 1500 },
   );
 
   const parsed = parseJsonContent(completion.content) as { summary?: unknown };

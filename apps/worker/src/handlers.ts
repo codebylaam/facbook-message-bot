@@ -1,6 +1,7 @@
 import { type IngestPageJob, QUEUES, type ReembedJob, type SyncPostsJob } from "@fb-bot/shared";
 import type { PgBoss } from "pg-boss";
 import { createDeps } from "./deps.ts";
+import { type CommentJob, handleComment } from "./jobs/comment.ts";
 import { ingestPage } from "./jobs/ingest-page.ts";
 import { reembedSourceById } from "./jobs/reembed.ts";
 import { handleReply, type ReplyJob } from "./jobs/reply.ts";
@@ -66,6 +67,15 @@ export async function registerHandlers(boss: PgBoss): Promise<void> {
   });
 
   await boss.work(QUEUES.comment, async (jobs) => {
-    console.log(`[worker] ${QUEUES.comment}: ${jobs.length} job(s), handled by phase 9`);
+    const [job] = jobs;
+
+    if (!job) {
+      return;
+    }
+
+    const result = await handleComment(deps, job.data as CommentJob);
+    console.log(
+      `[worker] comment ${result.commentId}: ${result.action}${result.reason ? ` (${result.reason})` : ""}`,
+    );
   });
 }

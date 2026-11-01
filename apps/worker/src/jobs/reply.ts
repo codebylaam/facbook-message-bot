@@ -1,5 +1,4 @@
 import {
-  hybridSearch,
   type ReplyTurn,
   runReplyEngine,
   shouldRefreshSummary,
@@ -12,18 +11,17 @@ import {
   findConversationById,
   findCustomerById,
   findPageById,
-  findPageProfile,
   incrementAiReplies,
   insertMessage,
   listPendingInboundMessages,
-  listPoliciesForPage,
   listRecentMessages,
   periodStartFor,
   recordOutboundMessage,
   setConversationMode,
   setConversationSummary,
 } from "@fb-bot/db";
-import { decryptToken, profileLines, sendTextMessage, showTypingThenWait } from "@fb-bot/meta";
+import { decryptToken, sendTextMessage, showTypingThenWait } from "@fb-bot/meta";
+import { loadReplyKnowledge, makeRetriever } from "../ai-context.ts";
 import type { WorkerDeps } from "../deps.ts";
 import { env } from "../env.ts";
 import { evaluateGuards } from "../guards.ts";
@@ -106,23 +104,8 @@ export async function handleReply(
   const message = texts.join("\n");
   const pageAccessToken = decryptToken(page.accessTokenEncrypted, deps.encryptionKey);
 
-  const retrieve = async (query: string) => {
-    let embedding: number[] | null = null;
-
-    if (deps.embeddings) {
-      try {
-        embedding = await deps.embeddings.embedOne(query);
-      } catch (error) {
-        console.warn("[worker] embedding the query failed, searching by text only", error);
-      }
-    }
-
-    return hybridSearch(deps.db, { pageId: page.id, query, embedding });
-  };
-
-  const [profile, policies, recent] = await Promise.all([
-    findPageProfile(deps.db, page.id),
-    listPoliciesForPage(deps.db, page.id),
+  const [knowledge, recent] = await Promise.all([
+    loadReplyKnowledge(deps.db, page),
     listRecentMessages(deps.db, conversationId, 10),
   ]);
 
@@ -132,13 +115,8 @@ export async function handleReply(
 
   const result = await runReplyEngine({
     llm: deps.llm,
-    knowledge: {
-      pageName: page.name,
-      persona: page.persona,
-      profileLines: profile ? profileLines(profile) : [],
-      policies: policies.map((policy) => ({ title: policy.title, content: policy.content })),
-    },
-    retrieve,
+    knowledge,
+    retrieve: makeRetriever(deps, page.id),
     message,
     confidenceThreshold: page.confidenceThreshold,
     history,

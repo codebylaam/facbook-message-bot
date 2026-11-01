@@ -33,7 +33,7 @@ export async function generateReply(
   const completion = await llm.chat(buildReplyMessages(input), {
     json: true,
     temperature: 0.3,
-    maxTokens: 600,
+    maxTokens: 2000,
   });
 
   let parsed: unknown;

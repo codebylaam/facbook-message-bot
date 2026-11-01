@@ -86,3 +86,41 @@ export function extractSharedPostUrl(text: string | null): string | null {
 
   return text.match(FACEBOOK_POST_URL)?.[0] ?? null;
 }
+
+export type PrivateReplyResult = {
+  messageId: string | null;
+};
+
+/**
+ * A private reply is a normal message whose recipient is the comment, which opens
+ * or continues a DM with the commenter without ever knowing their PSID.
+ */
+export async function sendPrivateReply(
+  graphApi: GraphApi,
+  input: { pageId: string; pageAccessToken: string; commentId: string; text: string },
+): Promise<PrivateReplyResult> {
+  const response = await graphApi.request<SendResponse>(`/${input.pageId}/messages`, {
+    method: "POST",
+    accessToken: input.pageAccessToken,
+    body: {
+      messaging_type: "RESPONSE",
+      recipient: { comment_id: input.commentId },
+      message: { text: input.text },
+    },
+  });
+
+  return { messageId: response.message_id ?? null };
+}
+
+export async function replyToComment(
+  graphApi: GraphApi,
+  input: { commentId: string; pageAccessToken: string; message: string },
+): Promise<{ commentId: string | null }> {
+  const response = await graphApi.request<{ id?: string }>(`/${input.commentId}/comments`, {
+    method: "POST",
+    accessToken: input.pageAccessToken,
+    body: { message: input.message },
+  });
+
+  return { commentId: response.id ?? null };
+}

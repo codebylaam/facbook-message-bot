@@ -6,6 +6,7 @@ import { HTTPException } from "hono/http-exception";
 import { db } from "../db.ts";
 import { env, isMetaConfigured } from "../env.ts";
 import { enqueue } from "../queue.ts";
+import { handleFeedEntry } from "../services/comments.ts";
 import { handleMessageEntry } from "../services/inbound.ts";
 
 export const webhookRoute = new Hono();
@@ -71,6 +72,10 @@ webhookRoute.post("/", async (c) => {
     );
   };
 
+  const enqueueComment = async (commentId: string) => {
+    await enqueue(QUEUES.comment, { commentId });
+  };
+
   for (const entry of entries) {
     const page = await findPageByFbPageId(db, entry.fbPageId);
 
@@ -86,7 +91,31 @@ webhookRoute.post("/", async (c) => {
       await markWebhookEvent(db, { id: record.id, status: "ignored" });
     }
 
-    if (entry.field !== "messages" || !record) {
+    if (!record) {
+      continue;
+    }
+
+    if (entry.field === "feed") {
+      try {
+        const outcome = await handleFeedEntry({ db, enqueueComment }, entry.entry);
+        await markWebhookEvent(db, {
+          id: record.id,
+          status: outcome.reason ? "ignored" : "processed",
+          error: outcome.reason,
+        });
+      } catch (error) {
+        console.error("[api] could not process an inbound comment", error);
+        await markWebhookEvent(db, {
+          id: record.id,
+          status: "failed",
+          error: error instanceof Error ? error.message : "unknown error",
+        });
+      }
+
+      continue;
+    }
+
+    if (entry.field !== "messages") {
       continue;
     }
 
