@@ -3,7 +3,10 @@ import postgres from "postgres";
 import * as schema from "./schema/index.ts";
 
 export function createDb(url: string, options: { max?: number } = {}) {
-  const client = postgres(url, { max: options.max ?? 10 });
+  const client = postgres(url, {
+    max: options.max ?? 10,
+    onnotice: () => {},
+  });
   const db = drizzle(client, { schema });
 
   return {

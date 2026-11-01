@@ -1,40 +1,10 @@
-import { AppShell } from "@astryxdesign/core/AppShell";
-import { Badge } from "@astryxdesign/core/Badge";
-import { TopNav, TopNavHeading, TopNavItem } from "@astryxdesign/core/TopNav";
-import type { QueryClient } from "@tanstack/react-query";
-import { createRootRouteWithContext, Outlet, useRouterState } from "@tanstack/react-router";
-import { RouterLink } from "../lib/router-link.tsx";
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import type { RouterContext } from "../lib/router-context.ts";
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  component: RootLayout,
+export const Route = createRootRouteWithContext<RouterContext>()({
+  component: RootComponent,
 });
 
-const NAV_ITEMS = [{ label: "Overview", href: "/" }] as const;
-
-function RootLayout() {
-  const pathname = useRouterState({ select: (state) => state.location.pathname });
-
-  return (
-    <AppShell
-      height="auto"
-      contentPadding={4}
-      topNav={
-        <TopNav
-          heading={<TopNavHeading as={RouterLink} heading="FB Bot" headingHref="/" />}
-          startContent={NAV_ITEMS.map((item) => (
-            <TopNavItem
-              key={item.href}
-              as={RouterLink}
-              href={item.href}
-              isSelected={pathname === item.href}
-              label={item.label}
-            />
-          ))}
-          endContent={<Badge label="Foundation" variant="neutral" />}
-        />
-      }
-    >
-      <Outlet />
-    </AppShell>
-  );
+function RootComponent() {
+  return <Outlet />;
 }

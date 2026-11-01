@@ -1,0 +1,73 @@
+import { and, desc, eq } from "drizzle-orm";
+import type { Db } from "../client.ts";
+import type { webhookStatusEnum } from "../schema/enums.ts";
+import { fbPages } from "../schema/pages.ts";
+
+export type WebhookStatus = (typeof webhookStatusEnum.enumValues)[number];
+
+export type NewFbPage = {
+  fbPageId: string;
+  name: string;
+  accessTokenEncrypted: string;
+};
+
+export type FbPageUpdate = Partial<{
+  name: string;
+  accessTokenEncrypted: string;
+  botEnabled: boolean;
+  webhookStatus: WebhookStatus;
+  lastSyncedAt: Date;
+}>;
+
+export async function listPagesForOwner(db: Db, ownerId: string) {
+  return db
+    .select()
+    .from(fbPages)
+    .where(eq(fbPages.ownerId, ownerId))
+    .orderBy(desc(fbPages.createdAt));
+}
+
+export async function findPageForOwner(db: Db, ownerId: string, pageId: string) {
+  const [page] = await db
+    .select()
+    .from(fbPages)
+    .where(and(eq(fbPages.id, pageId), eq(fbPages.ownerId, ownerId)))
+    .limit(1);
+
+  return page;
+}
+
+export async function findPageByFbPageId(db: Db, fbPageId: string) {
+  const [page] = await db.select().from(fbPages).where(eq(fbPages.fbPageId, fbPageId)).limit(1);
+
+  return page;
+}
+
+export async function createPageForOwner(db: Db, ownerId: string, input: NewFbPage) {
+  const [page] = await db
+    .insert(fbPages)
+    .values({ ...input, ownerId })
+    .returning();
+
+  return page;
+}
+
+export async function updatePageForOwner(
+  db: Db,
+  ownerId: string,
+  pageId: string,
+  patch: FbPageUpdate,
+) {
+  return db
+    .update(fbPages)
+    .set(patch)
+    .where(and(eq(fbPages.id, pageId), eq(fbPages.ownerId, ownerId)))
+    .returning();
+}
+
+export async function deletePageForOwner(db: Db, ownerId: string, pageId: string) {
+  return db
+    .delete(fbPages)
+    .where(and(eq(fbPages.id, pageId), eq(fbPages.ownerId, ownerId)))
+    .returning({ id: fbPages.id });
+}

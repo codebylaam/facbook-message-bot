@@ -8,6 +8,13 @@
       "when": 1793560278266,
       "tag": "0000_aberrant_boomer",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793561096360,
+      "tag": "0001_woozy_talisman",
+      "breakpoints": true
     }
   ]
 }

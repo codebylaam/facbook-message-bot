@@ -6,9 +6,9 @@ import { Text } from "@astryxdesign/core/Text";
 import { VStack } from "@astryxdesign/core/VStack";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { api } from "../lib/api/client.ts";
+import { api } from "../../lib/api/client.ts";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_app/")({
   component: OverviewPage,
 });
 
@@ -19,7 +19,7 @@ type HealthResponse = {
 };
 
 const healthQueryOptions = queryOptions({
-  queryKey: ["health"],
+  queryKey: ["health"] as const,
   queryFn: async (): Promise<HealthResponse> => {
     const response = await api.get<HealthResponse>("/health");
     return response.data;
@@ -35,14 +35,15 @@ function formatUptime(seconds: number) {
 }
 
 function OverviewPage() {
+  const { session } = Route.useRouteContext();
   const health = useQuery(healthQueryOptions);
 
   return (
     <VStack gap={6}>
       <VStack gap={1}>
-        <Heading level={1}>Foundation</Heading>
+        <Heading level={1}>Welcome, {session.user.name}</Heading>
         <Text type="supporting">
-          Workspaces, Postgres with pgvector, the pg-boss worker, the Hono API and this React shell.
+          Signed in as {session.user.email} · role {session.user.role}
         </Text>
       </VStack>
 
@@ -63,19 +64,17 @@ function OverviewPage() {
 
         <Card>
           <VStack gap={1}>
-            <Text type="label">Database</Text>
+            <Text type="label">Session</Text>
             <Text type="supporting">
-              Drizzle schema with pgvector embeddings, full-text and trigram indexes.
+              Expires {new Date(session.session.expiresAt).toLocaleString()}
             </Text>
           </VStack>
         </Card>
 
         <Card>
           <VStack gap={1}>
-            <Text type="label">Queue</Text>
-            <Text type="supporting">
-              pg-boss queues for ingest, sync, replies and comments on the same Postgres.
-            </Text>
+            <Text type="label">Next</Text>
+            <Text type="supporting">Connect a Facebook Page and ingest its knowledge.</Text>
           </VStack>
         </Card>
       </Grid>
