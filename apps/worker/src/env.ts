@@ -1,3 +1,28 @@
 import { parseEnv, serverEnvSchema } from "@fb-bot/shared";
+import { z } from "zod";
 
-export const env = parseEnv(serverEnvSchema, process.env);
+export const env = parseEnv(
+  serverEnvSchema.extend({
+    CMD_API_KEY: z.string().default(""),
+    CMD_BASE_URL: z.string().default("https://api.commandcode.ai/provider/v1"),
+    LLM_MODEL: z.string().default("deepseek/deepseek-v4-flash"),
+
+    EMBED_URL: z.string().default("http://localhost:8080"),
+
+    META_APP_ID: z.string().default(""),
+    META_APP_SECRET: z.string().default(""),
+    META_VERIFY_TOKEN: z.string().default(""),
+    META_GRAPH_VERSION: z.string().default("v23.0"),
+
+    TOKEN_ENC_KEY: z.string().default(""),
+  }),
+  process.env,
+);
+
+export function requireTokenEncKey(): string {
+  if (env.TOKEN_ENC_KEY.length === 0) {
+    throw new Error("TOKEN_ENC_KEY is not set, so page tokens cannot be decrypted");
+  }
+
+  return env.TOKEN_ENC_KEY;
+}

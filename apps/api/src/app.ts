@@ -5,9 +5,14 @@ import { auth } from "./auth.ts";
 import { env } from "./env.ts";
 import type { AppEnv } from "./middleware/auth.ts";
 import { errorHandler } from "./middleware/error-handler.ts";
+import { faqsRoute } from "./routes/faqs.ts";
 import { healthRoute } from "./routes/health.ts";
+import { knowledgeRoute } from "./routes/knowledge.ts";
 import { meRoute } from "./routes/me.ts";
 import { pagesRoute } from "./routes/pages.ts";
+import { policiesRoute } from "./routes/policies.ts";
+import { postsRoute } from "./routes/posts.ts";
+import { productsRoute } from "./routes/products.ts";
 import { webhookRoute } from "./routes/webhooks.ts";
 
 export function createApp() {
@@ -23,6 +28,11 @@ export function createApp() {
   app.route("/health", healthRoute);
   app.route("/api/me", meRoute);
   app.route("/api/pages", pagesRoute);
+  app.route("/api/products", productsRoute);
+  app.route("/api/faqs", faqsRoute);
+  app.route("/api/policies", policiesRoute);
+  app.route("/api/posts", postsRoute);
+  app.route("/api/knowledge", knowledgeRoute);
   app.route("/webhooks/meta", webhookRoute);
 
   return app;

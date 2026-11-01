@@ -12,6 +12,7 @@ import type { DiscoveredPage } from "@fb-bot/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { resyncPage } from "../../features/knowledge/api.ts";
 import {
   connectPage,
   disconnectPage,
@@ -57,6 +58,13 @@ function PagesPage() {
   const disconnectMutation = useMutation({
     mutationFn: disconnectPage,
     onSuccess: invalidatePages,
+  });
+
+  const resyncMutation = useMutation({
+    mutationFn: resyncPage,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["knowledge-summary"] });
+    },
   });
 
   const isBusy = connectMutation.isPending || disconnectMutation.isPending || isConnecting;
@@ -206,14 +214,24 @@ function PagesPage() {
                     />
                   </HStack>
 
-                  <Button
-                    label="Disconnect"
-                    size="sm"
-                    variant="secondary"
-                    isLoading={disconnectMutation.isPending}
-                    isDisabled={isBusy}
-                    onClick={() => disconnectMutation.mutate(page.id)}
-                  />
+                  <HStack align="center" gap={2}>
+                    <Button
+                      label="Sync now"
+                      size="sm"
+                      variant="secondary"
+                      isLoading={resyncMutation.isPending}
+                      isDisabled={isBusy}
+                      onClick={() => resyncMutation.mutate(page.id)}
+                    />
+                    <Button
+                      label="Disconnect"
+                      size="sm"
+                      variant="secondary"
+                      isLoading={disconnectMutation.isPending}
+                      isDisabled={isBusy}
+                      onClick={() => disconnectMutation.mutate(page.id)}
+                    />
+                  </HStack>
                 </VStack>
               </Card>
             ))}

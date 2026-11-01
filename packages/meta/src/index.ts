@@ -4,4 +4,6 @@ export * from "./errors.ts";
 export * from "./graph.ts";
 export * from "./oauth.ts";
 export * from "./pages.ts";
+export * from "./posts.ts";
+export * from "./profile.ts";
 export * from "./webhook.ts";

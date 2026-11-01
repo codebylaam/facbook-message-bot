@@ -21,6 +21,9 @@ export const Route = createFileRoute("/_app")({
 const NAV_ITEMS = [
   { label: "Overview", href: "/" },
   { label: "Pages", href: "/pages" },
+  { label: "Products", href: "/products" },
+  { label: "Knowledge", href: "/knowledge" },
+  { label: "Get live", href: "/onboarding" },
 ] as const;
 
 function AppLayout() {

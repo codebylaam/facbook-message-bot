@@ -9,9 +9,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@fb-bot/ai": "workspace:*",
     "@fb-bot/db": "workspace:*",
+    "@fb-bot/meta": "workspace:*",
     "@fb-bot/shared": "workspace:*",
-    "pg-boss": "^12.38.0"
+    "drizzle-orm": "^0.45.4",
+    "pg-boss": "^12.38.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/bun": "^1.4.4",

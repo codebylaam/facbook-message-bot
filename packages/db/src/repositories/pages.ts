@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import type { Db } from "../client.ts";
 import type { webhookStatusEnum } from "../schema/enums.ts";
 import { fbPages } from "../schema/pages.ts";
@@ -39,6 +39,26 @@ export async function findPageForOwner(db: Db, ownerId: string, pageId: string) 
 
 export async function findPageByFbPageId(db: Db, fbPageId: string) {
   const [page] = await db.select().from(fbPages).where(eq(fbPages.fbPageId, fbPageId)).limit(1);
+
+  return page;
+}
+
+export async function findPageById(db: Db, pageId: string) {
+  const [page] = await db.select().from(fbPages).where(eq(fbPages.id, pageId)).limit(1);
+
+  return page;
+}
+
+export async function listPagesForSync(db: Db) {
+  return db.select().from(fbPages).orderBy(asc(fbPages.createdAt));
+}
+
+export async function markPageSynced(db: Db, pageId: string, syncedAt = new Date()) {
+  const [page] = await db
+    .update(fbPages)
+    .set({ lastSyncedAt: syncedAt, webhookStatus: "active", updatedAt: new Date() })
+    .where(eq(fbPages.id, pageId))
+    .returning();
 
   return page;
 }

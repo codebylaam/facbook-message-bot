@@ -1,11 +1,12 @@
 import { findPageForOwner, listPagesForOwner } from "@fb-bot/db";
-import { connectPageSchema, discoverPagesSchema } from "@fb-bot/shared";
+import { connectPageSchema, discoverPagesSchema, QUEUES } from "@fb-bot/shared";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { db } from "../db.ts";
 import { getEncryptionKey, graphApi, isMetaConfigured, metaConfig, metaScopes } from "../meta.ts";
 import { type AppEnv, requireSession } from "../middleware/auth.ts";
+import { enqueue } from "../queue.ts";
 import {
   connectPage,
   disconnectPage,
@@ -103,10 +104,25 @@ pagesRoute.post("/", zValidator("json", connectPageSchema), async (c) => {
       fbPageId,
     });
 
+    await enqueue(QUEUES.ingestPage, { pageId: page.id });
+
     return c.json({ page }, 201);
   } catch (error) {
     return handlePageError(error);
   }
+});
+
+pagesRoute.post("/:id/resync", async (c) => {
+  const user = c.get("user");
+  const page = await findPageForOwner(db, user.id, c.req.param("id"));
+
+  if (!page) {
+    throw new HTTPException(404, { message: "Page not found" });
+  }
+
+  await enqueue(QUEUES.ingestPage, { pageId: page.id });
+
+  return c.json({ queued: true, pageId: page.id });
 });
 
 pagesRoute.delete("/:id", async (c) => {

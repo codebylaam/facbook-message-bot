@@ -13,7 +13,10 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppKnowledgeRouteImport } from './routes/_app/knowledge'
+import { Route as AppOnboardingRouteImport } from './routes/_app/onboarding'
 import { Route as AppPagesRouteImport } from './routes/_app/pages'
+import { Route as AppProductsRouteImport } from './routes/_app/products'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -34,9 +37,24 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppKnowledgeRoute = AppKnowledgeRouteImport.update({
+  id: '/knowledge',
+  path: '/knowledge',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOnboardingRoute = AppOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPagesRoute = AppPagesRouteImport.update({
   id: '/pages',
   path: '/pages',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProductsRoute = AppProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -44,12 +62,18 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/knowledge': typeof AppKnowledgeRoute
+  '/onboarding': typeof AppOnboardingRoute
   '/pages': typeof AppPagesRoute
+  '/products': typeof AppProductsRoute
 }
 export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/knowledge': typeof AppKnowledgeRoute
+  '/onboarding': typeof AppOnboardingRoute
   '/pages': typeof AppPagesRoute
+  '/products': typeof AppProductsRoute
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -57,15 +81,41 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/_app/knowledge': typeof AppKnowledgeRoute
+  '/_app/onboarding': typeof AppOnboardingRoute
   '/_app/pages': typeof AppPagesRoute
+  '/_app/products': typeof AppProductsRoute
   '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign-in' | '/sign-up' | '/pages'
+  fullPaths:
+    | '/'
+    | '/sign-in'
+    | '/sign-up'
+    | '/knowledge'
+    | '/onboarding'
+    | '/pages'
+    | '/products'
   fileRoutesByTo: FileRoutesByTo
-  to: '/sign-in' | '/sign-up' | '/pages' | '/'
-  id: '__root__' | '/_app' | '/sign-in' | '/sign-up' | '/_app/pages' | '/_app/'
+  to:
+    | '/sign-in'
+    | '/sign-up'
+    | '/knowledge'
+    | '/onboarding'
+    | '/pages'
+    | '/products'
+    | '/'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/sign-in'
+    | '/sign-up'
+    | '/_app/knowledge'
+    | '/_app/onboarding'
+    | '/_app/pages'
+    | '/_app/products'
+    | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -104,6 +154,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/knowledge': {
+      id: '/_app/knowledge'
+      path: '/knowledge'
+      fullPath: '/knowledge'
+      preLoaderRoute: typeof AppKnowledgeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/onboarding': {
+      id: '/_app/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AppOnboardingRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/pages': {
       id: '/_app/pages'
       path: '/pages'
@@ -111,16 +175,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPagesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/products': {
+      id: '/_app/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof AppProductsRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppKnowledgeRoute: typeof AppKnowledgeRoute
+  AppOnboardingRoute: typeof AppOnboardingRoute
   AppPagesRoute: typeof AppPagesRoute
+  AppProductsRoute: typeof AppProductsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppKnowledgeRoute: AppKnowledgeRoute,
+  AppOnboardingRoute: AppOnboardingRoute,
   AppPagesRoute: AppPagesRoute,
+  AppProductsRoute: AppProductsRoute,
   AppIndexRoute: AppIndexRoute,
 }
 

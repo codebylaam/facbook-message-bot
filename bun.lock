@@ -21,6 +21,7 @@
         "better-auth": "^1.7.15",
         "drizzle-orm": "^0.45.4",
         "hono": "^4.13.16",
+        "pg-boss": "^12.38.0",
         "zod": "^4.6.7",
       },
       "devDependencies": {
@@ -43,6 +44,7 @@
         "axios": "^1.21.0",
         "react": "^19.3.1",
         "react-dom": "^19.3.1",
+        "zod": "^4.6.7",
       },
       "devDependencies": {
         "@astryxdesign/cli": "^0.7.5",
@@ -59,9 +61,26 @@
       "name": "@fb-bot/worker",
       "version": "0.0.0",
       "dependencies": {
+        "@fb-bot/ai": "workspace:*",
         "@fb-bot/db": "workspace:*",
+        "@fb-bot/meta": "workspace:*",
         "@fb-bot/shared": "workspace:*",
+        "drizzle-orm": "^0.45.4",
         "pg-boss": "^12.38.0",
+        "zod": "^4.6.7",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.4.4",
+        "typescript": "^7.0.2",
+      },
+    },
+    "packages/ai": {
+      "name": "@fb-bot/ai",
+      "version": "0.0.0",
+      "dependencies": {
+        "@fb-bot/db": "workspace:*",
+        "drizzle-orm": "^0.45.4",
+        "zod": "^4.6.7",
       },
       "devDependencies": {
         "@types/bun": "^1.4.4",
@@ -285,6 +304,8 @@
     "@esbuild/win32-ia32": ["@esbuild/win32-ia32@0.25.12", "", { "os": "win32", "cpu": "ia32" }, "sha512-HkqnmmBoCbCwxUKKNPBixiWDGCpQGVsrQfJoVGYLPT41XWF8lHuE5N6WhVia2n4o5QK5M4tYr21827fNhi4byQ=="],
 
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.25.12", "", { "os": "win32", "cpu": "x64" }, "sha512-alJC0uCZpTFrSL0CCDjcgleBXPnCrEAhTBILpeAp7M/OFgoqtAetfBzX0xM00MUsVVPpVjlPuMbREqnZCXaTnA=="],
+
+    "@fb-bot/ai": ["@fb-bot/ai@workspace:packages/ai"],
 
     "@fb-bot/api": ["@fb-bot/api@workspace:apps/api"],
 
