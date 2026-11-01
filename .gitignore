@@ -1,0 +1,36 @@
+# dependencies
+node_modules/
+.bun/
+
+# build output
+dist/
+build/
+
+# env
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+bun-error.log
+
+# databases / local state
+*.sqlite
+*.sqlite3
+.pgdata/
+models/
+
+# test / coverage
+coverage/
+*.lcov
+
+# editors / os
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# scratch
+scratchpad/

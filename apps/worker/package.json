@@ -1,0 +1,20 @@
+{
+  "name": "@fb-bot/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fb-bot/db": "workspace:*",
+    "@fb-bot/shared": "workspace:*",
+    "pg-boss": "^12.38.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.4",
+    "typescript": "^7.0.2"
+  }
+}
