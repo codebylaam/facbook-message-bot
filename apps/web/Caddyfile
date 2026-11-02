@@ -1,0 +1,39 @@
+# DOMAIN is the public hostname. Use ":80" to try the stack without a domain.
+#
+# No global email block: an empty value is a parse error, and Caddy issues the
+# certificate either way. To receive expiry notices add:
+#
+#   {
+#       email you@example.com
+#   }
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	@api path /api/* /webhooks/*
+	handle @api {
+		reverse_proxy api:3000
+	}
+
+	# Meta posts the deletion callback here; the seller reads the page on GET.
+	@callback {
+		method POST
+		path /data-deletion
+	}
+	handle @callback {
+		reverse_proxy api:3000
+	}
+
+	handle {
+		root * /srv/web
+		try_files {path} /index.html
+		file_server
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}

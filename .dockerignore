@@ -1,0 +1,12 @@
+**/node_modules
+**/dist
+**/.bun
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+*.log
+docs
+Plan.md
+coverage

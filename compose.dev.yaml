@@ -1,0 +1,69 @@
+name: fb-bot-dev
+
+# Development stack: source is bind mounted and everything runs with --watch.
+# Postgres only, because working locally you usually run the apps on the host.
+services:
+  postgres:
+    image: docker.io/pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: fbbot
+      POSTGRES_PASSWORD: fbbot
+      POSTGRES_DB: fbbot
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fbbot -d fbbot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    image: docker.io/oven/bun:1.4-alpine
+    working_dir: /app/apps/api
+    command: ["bun", "run", "--watch", "src/index.ts"]
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["apps"]
+
+  worker:
+    image: docker.io/oven/bun:1.4-alpine
+    working_dir: /app/apps/worker
+    command: ["bun", "run", "--watch", "src/index.ts"]
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["apps"]
+
+  web:
+    image: docker.io/oven/bun:1.4-alpine
+    working_dir: /app/apps/web
+    command: ["bun", "run", "dev", "--host", "0.0.0.0"]
+    environment:
+      VITE_API_URL: http://localhost:3000
+    volumes:
+      - .:/app
+    ports:
+      - "5173:5173"
+    profiles: ["apps"]
+
+  # Exposes the webhook to Meta during development.
+  #   podman-compose -f compose.dev.yaml --profile tunnel up -d cloudflared
+  cloudflared:
+    image: docker.io/cloudflare/cloudflared:latest
+    command: ["tunnel", "--no-autoupdate", "run", "--token", "${CLOUDFLARED_TOKEN:-}"]
+    depends_on:
+      - api
+    profiles: ["tunnel"]
+
+volumes:
+  pgdata:

@@ -1,0 +1,9 @@
+[Unit]
+Description=fb-bot database backup
+After=podman.service
+
+[Service]
+Type=oneshot
+Environment=BACKUP_DIR=/var/backups/fb-bot
+Environment=RETENTION_DAYS=14
+ExecStart=/opt/fb-bot/scripts/backup.sh

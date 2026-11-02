@@ -1,6 +1,9 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+// Unset means local development against the API on its own port; an empty string
+// means the build is served behind one origin, so requests stay relative.
+const configuredBaseUrl = import.meta.env.VITE_API_URL;
+const baseURL = configuredBaseUrl === undefined ? "http://localhost:3000" : configuredBaseUrl;
 
 export const API_BASE_URL = baseURL;
 
