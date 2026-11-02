@@ -13,4 +13,5 @@ export * from "./policies.ts";
 export * from "./posts.ts";
 export * from "./products.ts";
 export * from "./usage.ts";
+export * from "./users.ts";
 export * from "./webhook-events.ts";

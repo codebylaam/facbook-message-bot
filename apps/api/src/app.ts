@@ -5,6 +5,8 @@ import { auth } from "./auth.ts";
 import { env } from "./env.ts";
 import type { AppEnv } from "./middleware/auth.ts";
 import { errorHandler } from "./middleware/error-handler.ts";
+import { adminRoute } from "./routes/admin.ts";
+import { billingRoute } from "./routes/billing.ts";
 import { commentsRoute } from "./routes/comments.ts";
 import { conversationsRoute } from "./routes/conversations.ts";
 import { eventsRoute } from "./routes/events.ts";
@@ -51,6 +53,8 @@ export function createApp() {
   app.route("/api/posts", postsRoute);
   app.route("/api/knowledge", knowledgeRoute);
   app.route("/api/comments", commentsRoute);
+  app.route("/api/billing", billingRoute);
+  app.route("/api/admin", adminRoute);
   app.route("/api/conversations", conversationsRoute);
   app.route("/api/events", eventsRoute);
   app.route("/api/playground", playgroundRoute);

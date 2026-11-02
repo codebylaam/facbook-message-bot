@@ -22,6 +22,7 @@ export const env = parseEnv(
 
     EMBED_URL: z.string().default(""),
 
+    DEFAULT_AI_REPLIES_LIMIT: z.coerce.number().int().positive().default(1000),
     REPLY_DEBOUNCE_SECONDS: z.coerce.number().int().nonnegative().default(6),
   }),
   process.env,

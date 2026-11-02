@@ -32,3 +32,20 @@ export const requireSession = createMiddleware<AppEnv>(async (c, next) => {
 
   await next();
 });
+
+export const requireAdmin = createMiddleware<AppEnv>(async (c, next) => {
+  const result = await auth.api.getSession({ headers: c.req.raw.headers });
+
+  if (!result) {
+    throw new HTTPException(401, { message: "Authentication required" });
+  }
+
+  if (result.user.role !== "admin") {
+    throw new HTTPException(403, { message: "This area is for admins only" });
+  }
+
+  c.set("user", result.user);
+  c.set("session", result.session);
+
+  await next();
+});

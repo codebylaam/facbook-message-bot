@@ -21,7 +21,8 @@
     "db:migrate": "bun run --cwd packages/db migrate",
     "db:studio": "bun run --cwd packages/db studio",
     "up": "podman-compose up -d postgres",
-    "down": "podman-compose down"
+    "down": "podman-compose down",
+    "db:seed": "bun run --cwd packages/db seed"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.4",

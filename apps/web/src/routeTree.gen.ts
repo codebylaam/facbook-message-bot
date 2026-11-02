@@ -13,6 +13,8 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppAdminRouteImport } from './routes/_app/admin'
+import { Route as AppBillingRouteImport } from './routes/_app/billing'
 import { Route as AppCommentsRouteImport } from './routes/_app/comments'
 import { Route as AppInboxRouteImport } from './routes/_app/inbox'
 import { Route as AppKnowledgeRouteImport } from './routes/_app/knowledge'
@@ -38,6 +40,16 @@ const SignUpRoute = SignUpRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminRoute = AppAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBillingRoute = AppBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCommentsRoute = AppCommentsRouteImport.update({
@@ -80,6 +92,8 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/admin': typeof AppAdminRoute
+  '/billing': typeof AppBillingRoute
   '/comments': typeof AppCommentsRoute
   '/inbox': typeof AppInboxRoute
   '/knowledge': typeof AppKnowledgeRoute
@@ -91,6 +105,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/admin': typeof AppAdminRoute
+  '/billing': typeof AppBillingRoute
   '/comments': typeof AppCommentsRoute
   '/inbox': typeof AppInboxRoute
   '/knowledge': typeof AppKnowledgeRoute
@@ -105,6 +121,8 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/_app/admin': typeof AppAdminRoute
+  '/_app/billing': typeof AppBillingRoute
   '/_app/comments': typeof AppCommentsRoute
   '/_app/inbox': typeof AppInboxRoute
   '/_app/knowledge': typeof AppKnowledgeRoute
@@ -120,6 +138,8 @@ export interface FileRouteTypes {
     | '/'
     | '/sign-in'
     | '/sign-up'
+    | '/admin'
+    | '/billing'
     | '/comments'
     | '/inbox'
     | '/knowledge'
@@ -131,6 +151,8 @@ export interface FileRouteTypes {
   to:
     | '/sign-in'
     | '/sign-up'
+    | '/admin'
+    | '/billing'
     | '/comments'
     | '/inbox'
     | '/knowledge'
@@ -144,6 +166,8 @@ export interface FileRouteTypes {
     | '/_app'
     | '/sign-in'
     | '/sign-up'
+    | '/_app/admin'
+    | '/_app/billing'
     | '/_app/comments'
     | '/_app/inbox'
     | '/_app/knowledge'
@@ -188,6 +212,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin': {
+      id: '/_app/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AppAdminRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/billing': {
+      id: '/_app/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof AppBillingRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/comments': {
@@ -243,6 +281,8 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppAdminRoute: typeof AppAdminRoute
+  AppBillingRoute: typeof AppBillingRoute
   AppCommentsRoute: typeof AppCommentsRoute
   AppInboxRoute: typeof AppInboxRoute
   AppKnowledgeRoute: typeof AppKnowledgeRoute
@@ -254,6 +294,8 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAdminRoute: AppAdminRoute,
+  AppBillingRoute: AppBillingRoute,
   AppCommentsRoute: AppCommentsRoute,
   AppInboxRoute: AppInboxRoute,
   AppKnowledgeRoute: AppKnowledgeRoute,
