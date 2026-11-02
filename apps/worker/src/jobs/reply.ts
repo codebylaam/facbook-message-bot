@@ -24,8 +24,10 @@ import { decryptToken, sendTextMessage, showTypingThenWait } from "@fb-bot/meta"
 import { loadReplyKnowledge, makeRetriever } from "../ai-context.ts";
 import type { WorkerDeps } from "../deps.ts";
 import { env } from "../env.ts";
+import { guardGraphCall } from "../graph-guard.ts";
 import { evaluateGuards } from "../guards.ts";
 import { notifyInbox } from "../inbox-events.ts";
+import { logger } from "../logger.ts";
 
 export type ReplyJob = { conversationId: string };
 
@@ -164,13 +166,14 @@ export async function handleReply(
       recipientId: customer.psid,
     };
 
-    await showTypingThenWait(deps.graphApi, sendTarget, {
-      delayMs: options.typingDelayMs ?? env.REPLY_TYPING_DELAY_MS,
-    });
+    const replyText = result.decision.reply;
 
-    const sent = await sendTextMessage(deps.graphApi, {
-      ...sendTarget,
-      text: result.decision.reply,
+    const sent = await guardGraphCall(deps, page, async () => {
+      await showTypingThenWait(deps.graphApi, sendTarget, {
+        delayMs: options.typingDelayMs ?? env.REPLY_TYPING_DELAY_MS,
+      });
+
+      return sendTextMessage(deps.graphApi, { ...sendTarget, text: replyText });
     });
 
     await insertMessage(deps.db, {
@@ -178,7 +181,7 @@ export async function handleReply(
       mid: sent.messageId,
       direction: "outbound",
       sender: "bot",
-      text: result.decision.reply,
+      text: replyText,
       aiMetadata,
     });
 
@@ -226,7 +229,7 @@ async function refreshSummary(
     await setConversationSummary(deps.db, conversationId, summary);
   } catch (error) {
     // A missing summary must never cost the customer a reply.
-    console.warn("[worker] could not refresh the conversation summary", error);
+    logger.warn({ err: error }, "[worker] could not refresh the conversation summary");
   }
 }
 

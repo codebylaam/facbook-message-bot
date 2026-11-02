@@ -118,3 +118,13 @@ export async function deletePageForOwner(db: Db, ownerId: string, pageId: string
     .where(and(eq(fbPages.id, pageId), eq(fbPages.ownerId, ownerId)))
     .returning({ id: fbPages.id });
 }
+
+export async function markPageError(db: Db, pageId: string, _reason?: string) {
+  const [page] = await db
+    .update(fbPages)
+    .set({ webhookStatus: "error", updatedAt: new Date() })
+    .where(eq(fbPages.id, pageId))
+    .returning();
+
+  return page;
+}

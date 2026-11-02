@@ -4,6 +4,7 @@ import { streamSSE } from "hono/streaming";
 import postgres from "postgres";
 import { db } from "../db.ts";
 import { env } from "../env.ts";
+import { logger } from "../logger.ts";
 import { type AppEnv, requireSession } from "../middleware/auth.ts";
 
 export const eventsRoute = new Hono<AppEnv>();
@@ -48,7 +49,7 @@ eventsRoute.get("/", async (c) => {
 
         await stream.writeSSE({ event: "inbox", data: payload });
       } catch (error) {
-        console.warn("[api] could not relay an inbox event", error);
+        logger.warn({ err: error }, "[api] could not relay an inbox event");
       }
     });
 

@@ -5,10 +5,12 @@ import { auth } from "./auth.ts";
 import { env } from "./env.ts";
 import type { AppEnv } from "./middleware/auth.ts";
 import { errorHandler } from "./middleware/error-handler.ts";
+import { accountRoute } from "./routes/account.ts";
 import { adminRoute } from "./routes/admin.ts";
 import { billingRoute } from "./routes/billing.ts";
 import { commentsRoute } from "./routes/comments.ts";
 import { conversationsRoute } from "./routes/conversations.ts";
+import { dataDeletionRoute } from "./routes/data-deletion.ts";
 import { eventsRoute } from "./routes/events.ts";
 import { faqsRoute } from "./routes/faqs.ts";
 import { healthRoute } from "./routes/health.ts";
@@ -54,11 +56,13 @@ export function createApp() {
   app.route("/api/knowledge", knowledgeRoute);
   app.route("/api/comments", commentsRoute);
   app.route("/api/billing", billingRoute);
+  app.route("/api/account", accountRoute);
   app.route("/api/admin", adminRoute);
   app.route("/api/conversations", conversationsRoute);
   app.route("/api/events", eventsRoute);
   app.route("/api/playground", playgroundRoute);
   app.route("/webhooks/meta", webhookRoute);
+  app.route("/data-deletion", dataDeletionRoute);
 
   return app;
 }

@@ -16,7 +16,7 @@ import {
   recordInboundMessage,
   users,
 } from "@fb-bot/db";
-import { encryptToken, type GraphApi } from "@fb-bot/meta";
+import { encryptToken, type GraphApi, PageRateLimiter } from "@fb-bot/meta";
 import { eq, inArray } from "drizzle-orm";
 import type { WorkerDeps } from "../deps.ts";
 import { handleReply } from "./reply.ts";
@@ -102,6 +102,7 @@ function deps(overrides: Partial<WorkerDeps> = {}): WorkerDeps {
     graphApi: stub.api,
     llm: scriptedLlm(answer()),
     embeddings: null,
+    rateLimiter: new PageRateLimiter({ limit: 10_000, windowMs: 60_000 }),
     encryptionKey,
     ...overrides,
   };

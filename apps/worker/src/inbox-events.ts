@@ -1,5 +1,6 @@
 import type { Db } from "@fb-bot/db";
 import { sql } from "drizzle-orm";
+import { logger } from "./logger.ts";
 
 export type InboxEvent = {
   pageId: string;
@@ -17,6 +18,6 @@ export async function notifyInbox(db: Db, event: InboxEvent): Promise<void> {
   try {
     await db.execute(sql`select pg_notify('inbox_events', ${JSON.stringify(event)})`);
   } catch (error) {
-    console.warn("[worker] could not publish an inbox event", error);
+    logger.warn({ err: error }, "[worker] could not publish an inbox event");
   }
 }

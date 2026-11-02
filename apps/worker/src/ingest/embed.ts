@@ -1,6 +1,7 @@
 import { chunkText } from "@fb-bot/ai";
 import { deleteChunksForSource, type KnowledgeSource, replaceChunksForSource } from "@fb-bot/db";
 import type { WorkerDeps } from "../deps.ts";
+import { logger } from "../logger.ts";
 
 export type EmbedSourceInput = {
   pageId: string;
@@ -23,7 +24,7 @@ export async function reembedSource(deps: WorkerDeps, input: EmbedSourceInput): 
 
   if (!deps.embeddings && !warnedAboutMissingProvider) {
     warnedAboutMissingProvider = true;
-    console.warn(
+    logger.warn(
       "[worker] no embeddings provider is configured, so chunks are stored without vectors and search stays keyword only",
     );
   }

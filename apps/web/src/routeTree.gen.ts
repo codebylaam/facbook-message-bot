@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as DataDeletionRouteImport } from './routes/data-deletion'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
@@ -25,6 +27,16 @@ import { Route as AppProductsRouteImport } from './routes/_app/products'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataDeletionRoute = DataDeletionRouteImport.update({
+  id: '/data-deletion',
+  path: '/data-deletion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignInRoute = SignInRouteImport.update({
@@ -90,6 +102,8 @@ const AppProductsRoute = AppProductsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/data-deletion': typeof DataDeletionRoute
+  '/privacy': typeof PrivacyRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/admin': typeof AppAdminRoute
@@ -103,6 +117,8 @@ export interface FileRoutesByFullPath {
   '/products': typeof AppProductsRoute
 }
 export interface FileRoutesByTo {
+  '/data-deletion': typeof DataDeletionRoute
+  '/privacy': typeof PrivacyRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/admin': typeof AppAdminRoute
@@ -119,6 +135,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/data-deletion': typeof DataDeletionRoute
+  '/privacy': typeof PrivacyRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/_app/admin': typeof AppAdminRoute
@@ -136,6 +154,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/data-deletion'
+    | '/privacy'
     | '/sign-in'
     | '/sign-up'
     | '/admin'
@@ -149,6 +169,8 @@ export interface FileRouteTypes {
     | '/products'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/data-deletion'
+    | '/privacy'
     | '/sign-in'
     | '/sign-up'
     | '/admin'
@@ -164,6 +186,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
+    | '/data-deletion'
+    | '/privacy'
     | '/sign-in'
     | '/sign-up'
     | '/_app/admin'
@@ -180,6 +204,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  DataDeletionRoute: typeof DataDeletionRoute
+  PrivacyRoute: typeof PrivacyRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
 }
@@ -191,6 +217,20 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data-deletion': {
+      id: '/data-deletion'
+      path: '/data-deletion'
+      fullPath: '/data-deletion'
+      preLoaderRoute: typeof DataDeletionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sign-in': {
@@ -310,6 +350,8 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  DataDeletionRoute: DataDeletionRoute,
+  PrivacyRoute: PrivacyRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
 }

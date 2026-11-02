@@ -12,7 +12,7 @@ import {
   pageProfile,
   users,
 } from "@fb-bot/db";
-import { encryptToken, type GraphApi } from "@fb-bot/meta";
+import { encryptToken, type GraphApi, PageRateLimiter } from "@fb-bot/meta";
 import { eq, inArray } from "drizzle-orm";
 import type { WorkerDeps } from "../deps.ts";
 import { ingestPage } from "./ingest-page.ts";
@@ -126,6 +126,7 @@ function deps(overrides: Partial<WorkerDeps> = {}): WorkerDeps {
     graphApi: createGraphStub(),
     llm,
     embeddings,
+    rateLimiter: new PageRateLimiter({ limit: 10_000, windowMs: 60_000 }),
     encryptionKey,
     ...overrides,
   };

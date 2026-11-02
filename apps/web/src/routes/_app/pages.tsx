@@ -137,6 +137,15 @@ function PagesPage() {
 
       {error ? <Banner container="card" status="error" title={error} /> : null}
 
+      {connectedPages.some((page) => page.webhookStatus === "error") ? (
+        <Banner
+          container="card"
+          status="error"
+          title="Facebook rejected a Page's access token"
+          description="Reconnect that Page. Until you do, the bot cannot send anything for it."
+        />
+      ) : null}
+
       {loginConfig.isSuccess && !isConfigured ? (
         <Banner
           container="card"

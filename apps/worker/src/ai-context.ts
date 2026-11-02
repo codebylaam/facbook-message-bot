@@ -2,6 +2,7 @@ import { hybridSearch, type ReplyKnowledge, type Retrieve, type RetrievedChunk }
 import { type Db, findPageProfile, listPoliciesForPage } from "@fb-bot/db";
 import { profileLines } from "@fb-bot/meta";
 import type { WorkerDeps } from "./deps.ts";
+import { logger } from "./logger.ts";
 
 type PageRow = NonNullable<Awaited<ReturnType<typeof import("@fb-bot/db").findPageById>>>;
 
@@ -28,7 +29,7 @@ export function makeRetriever(deps: WorkerDeps, pageId: string): Retrieve {
       try {
         embedding = await deps.embeddings.embedOne(query);
       } catch (error) {
-        console.warn("[worker] embedding the query failed, searching by text only", error);
+        logger.warn({ err: error }, "[worker] embedding the query failed, searching by text only");
       }
     }
 

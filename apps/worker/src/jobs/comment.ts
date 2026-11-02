@@ -19,7 +19,9 @@ import { decryptToken, replyToComment, sendPrivateReply } from "@fb-bot/meta";
 import { loadReplyKnowledge, makeRetriever } from "../ai-context.ts";
 import type { WorkerDeps } from "../deps.ts";
 import { env } from "../env.ts";
+import { guardGraphCall } from "../graph-guard.ts";
 import { notifyInbox } from "../inbox-events.ts";
+import { logger } from "../logger.ts";
 
 export type CommentJob = { commentId: string };
 
@@ -40,6 +42,14 @@ export async function handleComment(deps: WorkerDeps, job: CommentJob): Promise<
 
   if (!page) {
     return { commentId: comment.id, action: "skipped", reason: "the page no longer exists" };
+  }
+
+  if (comment.replyStatus === "private_replied" || comment.replyStatus === "public_replied") {
+    return {
+      commentId: comment.id,
+      action: "skipped",
+      reason: "this comment was already answered",
+    };
   }
 
   if (page.commentMode === "off") {
@@ -136,14 +146,17 @@ export async function handleComment(deps: WorkerDeps, job: CommentJob): Promise<
   }
 
   let privateReply: Awaited<ReturnType<typeof sendPrivateReply>>;
+  const replyText = result.decision.reply;
 
   try {
-    privateReply = await sendPrivateReply(deps.graphApi, {
-      pageId: page.fbPageId,
-      pageAccessToken,
-      commentId: comment.fbCommentId,
-      text: result.decision.reply,
-    });
+    privateReply = await guardGraphCall(deps, page, () =>
+      sendPrivateReply(deps.graphApi, {
+        pageId: page.fbPageId,
+        pageAccessToken,
+        commentId: comment.fbCommentId,
+        text: replyText,
+      }),
+    );
   } catch (error) {
     // Flag it so the seller sees the comment, then rethrow so the job still retries.
     await setCommentReplyStatus(deps.db, comment.id, "flagged");
@@ -155,11 +168,13 @@ export async function handleComment(deps: WorkerDeps, job: CommentJob): Promise<
 
   if (page.commentMode === "private_public") {
     try {
-      const published = await replyToComment(deps.graphApi, {
-        commentId: comment.fbCommentId,
-        pageAccessToken,
-        message: PUBLIC_REPLY_TEXT,
-      });
+      const published = await guardGraphCall(deps, page, () =>
+        replyToComment(deps.graphApi, {
+          commentId: comment.fbCommentId,
+          pageAccessToken,
+          message: PUBLIC_REPLY_TEXT,
+        }),
+      );
 
       if (published.commentId) {
         publicReplyMid = published.commentId;
@@ -167,7 +182,10 @@ export async function handleComment(deps: WorkerDeps, job: CommentJob): Promise<
       }
     } catch (error) {
       // The private reply already reached the customer, so this is not fatal.
-      console.warn("[worker] the public comment reply failed, the private one was sent", error);
+      logger.warn(
+        { err: error },
+        "[worker] the public comment reply failed, the private one was sent",
+      );
     }
   }
 

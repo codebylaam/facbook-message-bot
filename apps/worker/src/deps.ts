@@ -5,7 +5,13 @@ import {
   resolveEmbeddingsClient,
 } from "@fb-bot/ai";
 import { createDb } from "@fb-bot/db";
-import { createGraphApi, type GraphApi, type MetaConfig, parseEncryptionKey } from "@fb-bot/meta";
+import {
+  createGraphApi,
+  type GraphApi,
+  type MetaConfig,
+  PageRateLimiter,
+  parseEncryptionKey,
+} from "@fb-bot/meta";
 import { env } from "./env.ts";
 
 const { db, close } = createDb(env.DATABASE_URL);
@@ -23,6 +29,8 @@ export type WorkerDeps = {
   llm: LlmClient;
   /** Null means no embeddings provider is configured; chunks get no vector. */
   embeddings: EmbeddingsClient | null;
+  /** Per Page sliding window against the Graph API budget. */
+  rateLimiter: PageRateLimiter;
   encryptionKey: Buffer;
 };
 
@@ -52,6 +60,10 @@ export function createDeps(overrides: Partial<WorkerDeps> = {}): WorkerDeps {
         model: env.CF_EMBED_MODEL,
       },
       tei: { baseUrl: env.EMBED_URL },
+    }),
+    rateLimiter: new PageRateLimiter({
+      limit: env.GRAPH_CALLS_PER_HOUR,
+      windowMs: 60 * 60 * 1000,
     }),
     encryptionKey: getEncryptionKey(),
     ...overrides,

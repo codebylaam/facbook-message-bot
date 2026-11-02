@@ -1,13 +1,15 @@
 import { Badge } from "@astryxdesign/core/Badge";
 import { Banner } from "@astryxdesign/core/Banner";
+import { Button } from "@astryxdesign/core/Button";
 import { Card } from "@astryxdesign/core/Card";
 import { Grid } from "@astryxdesign/core/Grid";
 import { Heading } from "@astryxdesign/core/Heading";
 import { Text } from "@astryxdesign/core/Text";
 import { VStack } from "@astryxdesign/core/VStack";
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { billingQueryOptions } from "../../features/billing/api.ts";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { billingQueryOptions, deleteAccount } from "../../features/billing/api.ts";
 
 export const Route = createFileRoute("/_app/billing")({
   loader: ({ context }) => context.queryClient.ensureQueryData(billingQueryOptions),
@@ -20,7 +22,16 @@ function formatDate(value: string | null): string {
 
 function BillingPage() {
   const billing = useQuery(billingQueryOptions);
+  const navigate = useNavigate();
+  const [confirming, setConfirming] = useState(false);
   const data = billing.data;
+
+  const remove = useMutation({
+    mutationFn: deleteAccount,
+    onSuccess: async () => {
+      await navigate({ to: "/sign-in" });
+    },
+  });
 
   if (!data) {
     return <Text type="supporting">Loading…</Text>;
@@ -90,6 +101,30 @@ function BillingPage() {
           {formatDate(data.periodStart)} to {formatDate(data.periodEnd)}
         </Text>
       </VStack>
+
+      <Card>
+        <VStack gap={2}>
+          <Text type="label">Delete my account</Text>
+          <Text type="supporting">
+            Removes this account, its Pages, knowledge, conversations, comments and leads. This
+            cannot be undone.
+          </Text>
+          <Button
+            label={confirming ? "Yes, delete everything" : "Delete my account"}
+            size="sm"
+            variant="secondary"
+            isLoading={remove.isPending}
+            onClick={() => {
+              if (!confirming) {
+                setConfirming(true);
+                return;
+              }
+
+              remove.mutate();
+            }}
+          />
+        </VStack>
+      </Card>
     </VStack>
   );
 }

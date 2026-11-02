@@ -13,3 +13,9 @@ export async function findUserByEmail(db: Db, email: string) {
 
   return user;
 }
+
+export async function deleteUserById(db: Db, userId: string) {
+  const deleted = await db.delete(users).where(eq(users.id, userId)).returning({ id: users.id });
+
+  return deleted.length > 0;
+}

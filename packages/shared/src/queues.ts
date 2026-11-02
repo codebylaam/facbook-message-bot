@@ -4,6 +4,7 @@ export const QUEUES = {
   reembed: "reembed",
   reply: "reply",
   comment: "comment",
+  deadLetter: "dead-letter",
 } as const;
 
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
@@ -42,15 +43,52 @@ export const QUEUE_POLICIES = {
 
 export type QueuePolicy = (typeof QUEUE_POLICIES)[keyof typeof QUEUE_POLICIES];
 
-export function queueOptions(queue: QueueName): { policy?: QueuePolicy } {
-  const policy = (QUEUE_POLICIES as Record<string, QueuePolicy | undefined>)[queue];
+type RetryPolicy = {
+  retryLimit: number;
+  retryDelay: number;
+  retryBackoff: boolean;
+};
 
-  return policy ? { policy } : {};
+/**
+ * Every worker queue retries with backoff and then parks the job on the
+ * dead-letter queue, so a permanently broken job is inspectable instead of
+ * looping forever.
+ */
+const RETRY: Partial<Record<QueueName, RetryPolicy>> = {
+  [QUEUES.ingestPage]: { retryLimit: 3, retryDelay: 30, retryBackoff: true },
+  [QUEUES.syncPosts]: { retryLimit: 3, retryDelay: 30, retryBackoff: true },
+  [QUEUES.reembed]: { retryLimit: 5, retryDelay: 15, retryBackoff: true },
+  [QUEUES.reply]: { retryLimit: 5, retryDelay: 10, retryBackoff: true },
+  [QUEUES.comment]: { retryLimit: 5, retryDelay: 15, retryBackoff: true },
+};
+
+export type QueueOptionsShape = {
+  policy?: QueuePolicy;
+  retryLimit?: number;
+  retryDelay?: number;
+  retryBackoff?: boolean;
+  deadLetter?: string;
+};
+
+export function queueOptions(queue: QueueName): QueueOptionsShape {
+  if (queue === QUEUES.deadLetter) {
+    // The dead letter queue is a dead end on purpose: retrying it would loop.
+    return { retryLimit: 0 };
+  }
+
+  const policy = (QUEUE_POLICIES as Record<string, QueuePolicy | undefined>)[queue];
+  const retry = RETRY[queue];
+
+  return {
+    deadLetter: QUEUES.deadLetter,
+    ...(policy ? { policy } : {}),
+    ...(retry ?? { retryLimit: 3, retryDelay: 30, retryBackoff: true }),
+  };
 }
 
 /** The slice of pg-boss this needs, so shared never depends on the driver. */
 export type QueueBootstrap = {
-  createQueue(name: string, options?: { policy?: QueuePolicy }): Promise<void>;
+  createQueue(name: string, options?: QueueOptionsShape): Promise<void>;
   getQueue(name: string): Promise<{ policy?: string } | null>;
 };
 
@@ -63,7 +101,13 @@ export async function ensureQueues(
   boss: QueueBootstrap,
   warn: (message: string) => void,
 ): Promise<void> {
-  for (const queue of QUEUE_NAMES) {
+  // The dead letter queue has to exist before a queue can point at it.
+  const ordered = [
+    QUEUES.deadLetter,
+    ...QUEUE_NAMES.filter((queue) => queue !== QUEUES.deadLetter),
+  ];
+
+  for (const queue of ordered) {
     await boss.createQueue(queue, queueOptions(queue));
   }
 

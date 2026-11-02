@@ -8,6 +8,7 @@ import {
 import { type Db, findPageById, findPageProfile, listPoliciesForPage } from "@fb-bot/db";
 import { profileLines } from "@fb-bot/meta";
 import type { PlaygroundResponse } from "@fb-bot/shared";
+import { logger } from "../logger.ts";
 import { PageConnectionError } from "./pages.ts";
 
 export type PlaygroundDeps = {
@@ -46,7 +47,7 @@ export async function runPlayground(
       } catch (error) {
         // The playground has to stay usable when the embeddings service is down.
         embeddingsUsed = false;
-        console.warn("[api] playground falling back to text-only retrieval", error);
+        logger.warn({ err: error }, "[api] playground falling back to text-only retrieval");
       }
     }
 

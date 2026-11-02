@@ -1,6 +1,7 @@
 import { ensureQueues, type QueueName } from "@fb-bot/shared";
 import { PgBoss } from "pg-boss";
 import { env } from "./env.ts";
+import { logger } from "./logger.ts";
 
 let bossPromise: Promise<PgBoss> | undefined;
 
@@ -8,11 +9,11 @@ async function getBoss(): Promise<PgBoss> {
   bossPromise ??= (async () => {
     const boss = new PgBoss({ connectionString: env.DATABASE_URL });
     boss.on("error", (error) => {
-      console.error("[api] pg-boss error", error);
+      logger.error({ err: error }, "[api] pg-boss error");
     });
     await boss.start();
 
-    await ensureQueues(boss, (message) => console.warn(message));
+    await ensureQueues(boss, (message) => logger.warn(message));
 
     return boss;
   })();

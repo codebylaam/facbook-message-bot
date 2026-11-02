@@ -5,6 +5,7 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { db } from "../db.ts";
 import { env, isMetaConfigured } from "../env.ts";
+import { logger } from "../logger.ts";
 import { enqueue } from "../queue.ts";
 import { handleFeedEntry } from "../services/comments.ts";
 import { handleMessageEntry } from "../services/inbound.ts";
@@ -55,7 +56,7 @@ webhookRoute.post("/", async (c) => {
   try {
     entries = parseWebhookPayload(rawBody);
   } catch (error) {
-    console.error("[api] could not parse a signature-verified webhook", error);
+    logger.error({ err: error }, "[api] could not parse a signature-verified webhook");
     throw new HTTPException(400, { message: "Unrecognised webhook payload" });
   }
 
@@ -104,7 +105,7 @@ webhookRoute.post("/", async (c) => {
           error: outcome.reason,
         });
       } catch (error) {
-        console.error("[api] could not process an inbound comment", error);
+        logger.error({ err: error }, "[api] could not process an inbound comment");
         await markWebhookEvent(db, {
           id: record.id,
           status: "failed",
@@ -128,7 +129,7 @@ webhookRoute.post("/", async (c) => {
         await markWebhookEvent(db, { id: record.id, status: "processed" });
       }
     } catch (error) {
-      console.error("[api] could not process an inbound message", error);
+      logger.error({ err: error }, "[api] could not process an inbound message");
       await markWebhookEvent(db, {
         id: record.id,
         status: "failed",

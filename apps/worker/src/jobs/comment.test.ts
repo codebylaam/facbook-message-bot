@@ -2,7 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, test } from "bun:tes
 import { randomBytes } from "node:crypto";
 import type { ChatResult, LlmClient } from "@fb-bot/ai";
 import { createDb, fbPages, findCommentByIdOnly, insertComment, users } from "@fb-bot/db";
-import { encryptToken, type GraphApi } from "@fb-bot/meta";
+import { encryptToken, type GraphApi, PageRateLimiter } from "@fb-bot/meta";
 import { eq, inArray } from "drizzle-orm";
 import type { WorkerDeps } from "../deps.ts";
 import { handleComment } from "./comment.ts";
@@ -99,6 +99,7 @@ function deps(overrides: Partial<WorkerDeps> = {}): WorkerDeps {
     graphApi: stub.api,
     llm: scriptedLlm('{"kind":"price_question","confidence":0.9}'),
     embeddings: null,
+    rateLimiter: new PageRateLimiter({ limit: 10_000, windowMs: 60_000 }),
     encryptionKey,
     ...overrides,
   };

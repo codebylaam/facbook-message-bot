@@ -6,6 +6,7 @@ import { ingestPage } from "./jobs/ingest-page.ts";
 import { reembedSourceById } from "./jobs/reembed.ts";
 import { handleReply, type ReplyJob } from "./jobs/reply.ts";
 import { syncPagePosts } from "./jobs/sync-posts.ts";
+import { logger } from "./logger.ts";
 
 export async function registerHandlers(boss: PgBoss): Promise<void> {
   const deps = createDeps();
@@ -22,7 +23,7 @@ export async function registerHandlers(boss: PgBoss): Promise<void> {
     }
 
     const result = await ingestPage(deps, job.data as IngestPageJob);
-    console.log(
+    logger.info(
       `[worker] ingest-page ${result.pageId}: ${result.posts} posts, ${result.products} products, ${result.chunks} chunks, ${result.extractionFailures} extraction failures`,
     );
   });
@@ -35,7 +36,7 @@ export async function registerHandlers(boss: PgBoss): Promise<void> {
     }
 
     const result = await syncPagePosts(deps, job.data as SyncPostsJob);
-    console.log(
+    logger.info(
       `[worker] sync-posts ${result.pageId}: ${result.posts} posts, ${result.products} products, ${result.chunks} chunks`,
     );
   });
@@ -48,7 +49,7 @@ export async function registerHandlers(boss: PgBoss): Promise<void> {
     }
 
     const result = await reembedSourceById(deps, job.data as ReembedJob);
-    console.log(
+    logger.info(
       `[worker] reembed ${result.sourceType}/${result.sourceId}: ${result.chunks} chunks${result.skipped ? " (source gone)" : ""}`,
     );
   });
@@ -61,7 +62,7 @@ export async function registerHandlers(boss: PgBoss): Promise<void> {
     }
 
     const result = await handleReply(deps, job.data as ReplyJob, { enqueueReply });
-    console.log(
+    logger.info(
       `[worker] reply ${result.conversationId}: ${result.action}${result.reason ? ` (${result.reason})` : ""}`,
     );
   });
@@ -74,7 +75,7 @@ export async function registerHandlers(boss: PgBoss): Promise<void> {
     }
 
     const result = await handleComment(deps, job.data as CommentJob);
-    console.log(
+    logger.info(
       `[worker] comment ${result.commentId}: ${result.action}${result.reason ? ` (${result.reason})` : ""}`,
     );
   });

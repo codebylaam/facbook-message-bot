@@ -3,6 +3,8 @@ import { z } from "zod";
 
 export const env = parseEnv(
   serverEnvSchema.extend({
+    LOG_LEVEL: z.string().default("info"),
+    GRAPH_CALLS_PER_HOUR: z.coerce.number().int().positive().default(180),
     CMD_API_KEY: z.string().default(""),
     CMD_BASE_URL: z.string().default("https://api.commandcode.ai/provider/v1"),
     LLM_MODEL: z.string().default("deepseek/deepseek-v4-flash"),

@@ -2,6 +2,7 @@ import { extractProducts } from "@fb-bot/ai";
 import { replaceExtractedProductsForPost, upsertPostForPage } from "@fb-bot/db";
 import type { FacebookPost } from "@fb-bot/meta";
 import type { WorkerDeps } from "../deps.ts";
+import { logger } from "../logger.ts";
 import { mapWithConcurrency } from "./concurrency.ts";
 import { reembedSource } from "./embed.ts";
 import { productSearchText } from "./text.ts";
@@ -61,7 +62,7 @@ export async function syncPosts(
       });
     } catch (error) {
       extractionFailures += 1;
-      console.warn(`[worker] product extraction failed for post ${post.id}`, error);
+      logger.warn({ err: error }, `[worker] product extraction failed for post ${post.id}`);
       return;
     }
 

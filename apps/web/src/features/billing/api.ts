@@ -33,3 +33,7 @@ export async function assignPlan(userId: string, planName: string, months = 1) {
 export async function setUserRole(userId: string, role: "seller" | "admin") {
   await api.patch(`/api/admin/users/${userId}/role`, { role });
 }
+
+export async function deleteAccount() {
+  await api.delete("/api/account");
+}
