@@ -1,83 +1,130 @@
 import { Badge } from "@astryxdesign/core/Badge";
 import { Card } from "@astryxdesign/core/Card";
+import { EmptyState } from "@astryxdesign/core/EmptyState";
 import { Grid } from "@astryxdesign/core/Grid";
 import { Heading } from "@astryxdesign/core/Heading";
 import { Text } from "@astryxdesign/core/Text";
 import { VStack } from "@astryxdesign/core/VStack";
+import type { Dashboard, Lead } from "@fb-bot/shared";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { api } from "../../lib/api/client.ts";
 
-export const Route = createFileRoute("/_app/")({
-  component: OverviewPage,
-});
-
-type HealthResponse = {
-  status: string;
-  uptime: number;
-  timestamp: string;
-};
-
-const healthQueryOptions = queryOptions({
-  queryKey: ["health"] as const,
-  queryFn: async (): Promise<HealthResponse> => {
-    const response = await api.get<HealthResponse>("/health");
+const dashboardQueryOptions = queryOptions({
+  queryKey: ["dashboard"] as const,
+  queryFn: async (): Promise<Dashboard> => {
+    const response = await api.get<Dashboard>("/api/dashboard");
     return response.data;
   },
 });
 
-function formatUptime(seconds: number) {
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 1) return `${Math.round(seconds)}s`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 1) return `${minutes}m`;
-  return `${hours}h ${minutes % 60}m`;
+const leadsQueryOptions = queryOptions({
+  queryKey: ["leads"] as const,
+  queryFn: async (): Promise<Lead[]> => {
+    const response = await api.get<{ leads: Lead[] }>("/api/leads");
+    return response.data.leads;
+  },
+});
+
+export const Route = createFileRoute("/_app/")({
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(dashboardQueryOptions),
+      context.queryClient.ensureQueryData(leadsQueryOptions),
+    ]),
+  component: OverviewPage,
+});
+
+function Tile({ label, value, note }: { label: string; value: string; note?: string }) {
+  return (
+    <Card>
+      <VStack gap={0.5}>
+        <Text type="label">{label}</Text>
+        <Text size="2xl" weight="semibold" hasTabularNumbers>
+          {value}
+        </Text>
+        {note ? <Text type="supporting">{note}</Text> : null}
+      </VStack>
+    </Card>
+  );
 }
 
 function OverviewPage() {
   const { session } = Route.useRouteContext();
-  const health = useQuery(healthQueryOptions);
+  const dashboard = useQuery(dashboardQueryOptions);
+  const leads = useQuery(leadsQueryOptions);
+
+  const data = dashboard.data;
+  const rows = leads.data ?? [];
 
   return (
     <VStack gap={6}>
       <VStack gap={1}>
         <Heading level={1}>Welcome, {session.user.name}</Heading>
-        <Text type="supporting">
-          Signed in as {session.user.email} · role {session.user.role}
-        </Text>
+        <Text type="supporting">What the bot has handled for this Page.</Text>
       </VStack>
 
-      <Grid columns={{ minWidth: 240, max: 3 }} gap={3}>
-        <Card>
-          <VStack gap={1}>
-            <Text type="label">API</Text>
-            {health.isPending ? <Text type="supporting">checking…</Text> : null}
-            {health.isError ? <Badge label="unreachable" variant="error" /> : null}
-            {health.data ? (
-              <VStack gap={0.5}>
-                <Badge label={health.data.status} variant="success" />
-                <Text type="supporting">uptime {formatUptime(health.data.uptime)}</Text>
-              </VStack>
-            ) : null}
-          </VStack>
-        </Card>
+      {data ? (
+        <Grid columns={{ minWidth: 200, max: 4 }} gap={3}>
+          <Tile
+            label="Conversations"
+            value={String(data.conversations)}
+            note={`${data.inboundMessages} customer messages`}
+          />
+          <Tile
+            label="Auto-reply rate"
+            value={`${Math.round(data.autoReplyRate * 100)}%`}
+            note={`${data.botMessages} by the bot, ${data.humanMessages} by you`}
+          />
+          <Tile
+            label="With a human"
+            value={String(data.inHumanMode)}
+            note="handed off or taken over"
+          />
+          <Tile
+            label="Leads"
+            value={String(data.leads)}
+            note={`${data.usage.used} of ${data.usage.limit} replies used`}
+          />
+        </Grid>
+      ) : null}
 
-        <Card>
-          <VStack gap={1}>
-            <Text type="label">Session</Text>
-            <Text type="supporting">
-              Expires {new Date(session.session.expiresAt).toLocaleString()}
-            </Text>
-          </VStack>
-        </Card>
+      {data && data.draftProducts > 0 ? (
+        <Text type="supporting">
+          {data.draftProducts} product{data.draftProducts === 1 ? "" : "s"} extracted from posts
+          still need a review.
+        </Text>
+      ) : null}
 
-        <Card>
-          <VStack gap={1}>
-            <Text type="label">Next</Text>
-            <Text type="supporting">Connect a Facebook Page and ingest its knowledge.</Text>
+      <VStack gap={3}>
+        <Heading level={2}>Recent leads</Heading>
+
+        {rows.length === 0 ? (
+          <EmptyState
+            title="No leads yet"
+            description="When a customer gives an order detail in a conversation, it lands here."
+            isCompact
+          />
+        ) : (
+          <VStack gap={2}>
+            {rows.slice(0, 10).map((lead) => (
+              <Card key={lead.id}>
+                <VStack gap={1}>
+                  <Text type="label">{lead.name ?? lead.customerName ?? lead.customerPsid}</Text>
+                  <Text type="supporting">
+                    {lead.phone ?? "no phone"} · {lead.address ?? "no address"}
+                  </Text>
+                  <Text type="supporting">
+                    {lead.items.map((item) => `${item.quantity ?? 1}× ${item.name}`).join(", ") ||
+                      "no items"}
+                  </Text>
+                  <Badge label={lead.status} variant="info" />
+                </VStack>
+              </Card>
+            ))}
           </VStack>
-        </Card>
-      </Grid>
+        )}
+      </VStack>
     </VStack>
   );
 }

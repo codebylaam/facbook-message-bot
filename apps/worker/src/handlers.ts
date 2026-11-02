@@ -1,3 +1,4 @@
+import { listPagesForSync } from "@fb-bot/db";
 import { type IngestPageJob, QUEUES, type ReembedJob, type SyncPostsJob } from "@fb-bot/shared";
 import type { PgBoss } from "pg-boss";
 import { createDeps } from "./deps.ts";
@@ -65,6 +66,16 @@ export async function registerHandlers(boss: PgBoss): Promise<void> {
     logger.info(
       `[worker] reply ${result.conversationId}: ${result.action}${result.reason ? ` (${result.reason})` : ""}`,
     );
+  });
+
+  await boss.work(QUEUES.resyncAll, async () => {
+    const pages = await listPagesForSync(deps.db);
+
+    for (const page of pages) {
+      await boss.send(QUEUES.ingestPage, { pageId: page.id });
+    }
+
+    logger.info({ pages: pages.length }, "queued a full resync");
   });
 
   await boss.work(QUEUES.comment, async (jobs) => {

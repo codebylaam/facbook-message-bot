@@ -7,6 +7,7 @@ export * from "./inbox.ts";
 export * from "./knowledge-chunks.ts";
 export * from "./leads.ts";
 export * from "./messages.ts";
+export * from "./metrics.ts";
 export * from "./page-profile.ts";
 export * from "./pages.ts";
 export * from "./policies.ts";

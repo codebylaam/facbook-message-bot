@@ -20,7 +20,12 @@ import {
   setConversationMode,
   setConversationSummary,
 } from "@fb-bot/db";
-import { decryptToken, sendTextMessage, showTypingThenWait } from "@fb-bot/meta";
+import {
+  decryptToken,
+  extractSharedPostUrl,
+  sendTextMessage,
+  showTypingThenWait,
+} from "@fb-bot/meta";
 import { loadReplyKnowledge, makeRetriever } from "../ai-context.ts";
 import type { WorkerDeps } from "../deps.ts";
 import { env } from "../env.ts";
@@ -28,6 +33,7 @@ import { guardGraphCall } from "../graph-guard.ts";
 import { evaluateGuards } from "../guards.ts";
 import { notifyInbox } from "../inbox-events.ts";
 import { logger } from "../logger.ts";
+import { loadSharedPostContext } from "../shared-post.ts";
 
 export type ReplyJob = { conversationId: string };
 
@@ -41,6 +47,23 @@ export type ReplyJobOptions = {
   enqueueReply: (conversationId: string) => Promise<unknown>;
   typingDelayMs?: number;
 };
+
+/** Products from a shared post always come first, then the ranked results. */
+function withPinned(
+  retrieve: ReturnType<typeof makeRetriever>,
+  pinned: Awaited<ReturnType<typeof loadSharedPostContext>>,
+): ReturnType<typeof makeRetriever> {
+  if (pinned.length === 0) {
+    return retrieve;
+  }
+
+  return async (query: string) => {
+    const chunks = await retrieve(query);
+    const seen = new Set(chunks.map((chunk) => chunk.id));
+
+    return [...pinned.filter((chunk) => !seen.has(chunk.id)), ...chunks].slice(0, 12);
+  };
+}
 
 export async function handleReply(
   deps: WorkerDeps,
@@ -106,6 +129,12 @@ export async function handleReply(
   const message = texts.join("\n");
   const pageAccessToken = decryptToken(page.accessTokenEncrypted, deps.encryptionKey);
 
+  const sharedPostUrl =
+    pending.map((message) => extractSharedPostUrl(message.text)).find((url) => url !== null) ??
+    null;
+
+  const pinned = sharedPostUrl ? await loadSharedPostContext(deps.db, page.id, sharedPostUrl) : [];
+
   const [knowledge, recent] = await Promise.all([
     loadReplyKnowledge(deps.db, page),
     listRecentMessages(deps.db, conversationId, 10),
@@ -118,7 +147,7 @@ export async function handleReply(
   const result = await runReplyEngine({
     llm: deps.llm,
     knowledge,
-    retrieve: makeRetriever(deps, page.id),
+    retrieve: withPinned(makeRetriever(deps, page.id), pinned),
     message,
     confidenceThreshold: page.confidenceThreshold,
     history,

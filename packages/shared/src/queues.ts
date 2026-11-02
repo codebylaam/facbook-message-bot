@@ -4,6 +4,7 @@ export const QUEUES = {
   reembed: "reembed",
   reply: "reply",
   comment: "comment",
+  resyncAll: "resync-all",
   deadLetter: "dead-letter",
 } as const;
 
@@ -29,6 +30,7 @@ export type JobMap = {
   "ingest-page": IngestPageJob;
   "sync-posts": SyncPostsJob;
   reembed: ReembedJob;
+  "resync-all": Record<string, never>;
 };
 
 /**
@@ -60,6 +62,7 @@ const RETRY: Partial<Record<QueueName, RetryPolicy>> = {
   [QUEUES.reembed]: { retryLimit: 5, retryDelay: 15, retryBackoff: true },
   [QUEUES.reply]: { retryLimit: 5, retryDelay: 10, retryBackoff: true },
   [QUEUES.comment]: { retryLimit: 5, retryDelay: 15, retryBackoff: true },
+  [QUEUES.resyncAll]: { retryLimit: 2, retryDelay: 60, retryBackoff: true },
 };
 
 export type QueueOptionsShape = {

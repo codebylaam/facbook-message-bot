@@ -78,3 +78,13 @@ export async function findPostById(db: Db, pageId: string, postId: string) {
 
   return post;
 }
+
+export async function findPostByPermalink(db: Db, pageId: string, permalink: string) {
+  const [post] = await db
+    .select()
+    .from(posts)
+    .where(and(eq(posts.pageId, pageId), eq(posts.permalink, permalink)))
+    .limit(1);
+
+  return post;
+}

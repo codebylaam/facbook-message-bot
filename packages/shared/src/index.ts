@@ -1,5 +1,6 @@
 export * from "./auth.ts";
 export * from "./billing.ts";
+export * from "./dashboard.ts";
 export { parseEnv, type ServerEnv, serverEnvSchema } from "./env.ts";
 export * from "./inbox.ts";
 export * from "./knowledge.ts";

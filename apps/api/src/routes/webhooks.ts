@@ -77,6 +77,11 @@ webhookRoute.post("/", async (c) => {
     await enqueue(QUEUES.comment, { commentId });
   };
 
+  const enqueuePostSync = async (pageId: string) => {
+    // One sync per Page at a time, so a burst of post edits does not stack up.
+    await enqueue(QUEUES.syncPosts, { pageId }, { singletonKey: pageId, startAfterSeconds: 10 });
+  };
+
   for (const entry of entries) {
     const page = await findPageByFbPageId(db, entry.fbPageId);
 
@@ -98,7 +103,7 @@ webhookRoute.post("/", async (c) => {
 
     if (entry.field === "feed") {
       try {
-        const outcome = await handleFeedEntry({ db, enqueueComment }, entry.entry);
+        const outcome = await handleFeedEntry({ db, enqueueComment, enqueuePostSync }, entry.entry);
         await markWebhookEvent(db, {
           id: record.id,
           status: outcome.reason ? "ignored" : "processed",

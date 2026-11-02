@@ -1,4 +1,4 @@
-import { ensureQueues, QUEUE_NAMES } from "@fb-bot/shared";
+import { ensureQueues, QUEUE_NAMES, QUEUES } from "@fb-bot/shared";
 import { PgBoss } from "pg-boss";
 import { closeDb, getEncryptionKey } from "./deps.ts";
 import { env } from "./env.ts";
@@ -17,6 +17,9 @@ getEncryptionKey();
 await boss.start();
 
 await ensureQueues(boss, (message) => logger.warn(message));
+
+// Nightly full re-sync of every connected Page.
+await boss.schedule(QUEUES.resyncAll, "0 3 * * *", {});
 
 await registerHandlers(boss);
 

@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import type { Db } from "../client.ts";
-import { leads } from "../schema/conversations.ts";
+import { customers, leads } from "../schema/conversations.ts";
 import type { LeadItem } from "../schema/types.ts";
 
 export type NewLead = {
@@ -34,4 +34,27 @@ export async function createLead(db: Db, input: NewLead) {
 
 export async function listLeadsForPage(db: Db, pageId: string, limit = 50) {
   return db.select().from(leads).where(eq(leads.pageId, pageId)).limit(limit);
+}
+
+export async function listLeadsWithCustomer(db: Db, pageId: string, limit = 50) {
+  return db
+    .select({
+      id: leads.id,
+      pageId: leads.pageId,
+      conversationId: leads.conversationId,
+      customerName: customers.name,
+      customerPsid: customers.psid,
+      name: leads.name,
+      phone: leads.phone,
+      address: leads.address,
+      items: leads.items,
+      status: leads.status,
+      note: leads.note,
+      createdAt: leads.createdAt,
+    })
+    .from(leads)
+    .leftJoin(customers, eq(leads.customerId, customers.id))
+    .where(eq(leads.pageId, pageId))
+    .orderBy(desc(leads.createdAt))
+    .limit(limit);
 }

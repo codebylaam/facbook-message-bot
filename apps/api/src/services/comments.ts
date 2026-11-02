@@ -11,6 +11,7 @@ import type { WebhookEntry } from "@fb-bot/meta";
 export type FeedDeps = {
   db: Db;
   enqueueComment: (commentId: string) => Promise<void>;
+  enqueuePostSync: (pageId: string) => Promise<void>;
 };
 
 export type FeedResult = {
@@ -18,11 +19,18 @@ export type FeedResult = {
   enqueued: number;
   duplicates: number;
   skipped: number;
+  postSyncs: number;
   reason?: string;
 };
 
 export async function handleFeedEntry(deps: FeedDeps, entry: WebhookEntry): Promise<FeedResult> {
-  const result: FeedResult = { stored: 0, enqueued: 0, duplicates: 0, skipped: 0 };
+  const result: FeedResult = {
+    stored: 0,
+    enqueued: 0,
+    duplicates: 0,
+    skipped: 0,
+    postSyncs: 0,
+  };
 
   const page = await findPageByFbPageId(deps.db, entry.id);
 
@@ -38,7 +46,15 @@ export async function handleFeedEntry(deps: FeedDeps, entry: WebhookEntry): Prom
 
     const value = change.value;
 
-    // Feed also carries likes, edits and removals; only new comments matter here.
+    // A new or edited post means the knowledge is stale, so re-sync the Page.
+    if (value.item !== "comment" && (value.verb === "add" || value.verb === "edited")) {
+      await deps.enqueuePostSync(page.id);
+      result.skipped += 1;
+      result.postSyncs += 1;
+      continue;
+    }
+
+    // Feed also carries likes, removals and other noise.
     if (value.item !== "comment" || value.verb !== "add" || !value.comment_id) {
       result.skipped += 1;
       continue;

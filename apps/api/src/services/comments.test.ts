@@ -18,11 +18,15 @@ const FB_POST_ID = `feed-post-${runId}`;
 
 let pageId = "";
 const enqueued: string[] = [];
+const synced: string[] = [];
 
 const deps = () => ({
   db,
   enqueueComment: async (commentId: string) => {
     enqueued.push(commentId);
+  },
+  enqueuePostSync: async (pageId: string) => {
+    synced.push(pageId);
   },
 });
 
@@ -122,6 +126,38 @@ describe("handleFeedEntry", () => {
     expect(like.skipped).toBe(1);
     expect(like.stored).toBe(0);
     expect(removal.skipped).toBe(1);
+  });
+
+  test("asks for a page sync when a post is added or edited", async () => {
+    synced.length = 0;
+
+    const added = await handleFeedEntry(deps(), {
+      id: FB_PAGE_ID,
+      changes: [{ field: "feed", value: { item: "status", verb: "add", post_id: FB_POST_ID } }],
+    } as WebhookEntry);
+
+    expect(added.postSyncs).toBe(1);
+    expect(added.stored).toBe(0);
+    expect(synced).toEqual([pageId]);
+
+    const edited = await handleFeedEntry(deps(), {
+      id: FB_PAGE_ID,
+      changes: [{ field: "feed", value: { item: "status", verb: "edited", post_id: FB_POST_ID } }],
+    } as WebhookEntry);
+
+    expect(edited.postSyncs).toBe(1);
+    expect(synced).toHaveLength(2);
+  });
+
+  test("does not sync for a post removal", async () => {
+    synced.length = 0;
+
+    await handleFeedEntry(deps(), {
+      id: FB_PAGE_ID,
+      changes: [{ field: "feed", value: { item: "status", verb: "remove", post_id: FB_POST_ID } }],
+    } as WebhookEntry);
+
+    expect(synced).toHaveLength(0);
   });
 
   test("ignores a page that is not connected", async () => {
