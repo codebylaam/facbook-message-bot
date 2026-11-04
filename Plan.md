@@ -203,6 +203,13 @@ Image-only messages and unknown attachments are handed off in the MVP. Shared po
     - Data deletion callback and a privacy policy page, both required by Meta.
 12. **Meta App Review:** screencasts for each permission, a privacy policy URL, data deletion URL, and test credentials. Submit `pages_messaging` and the others. Until approval, only Pages whose admins are app testers can connect.
 13. **Deploy prep:** production images, a Caddy reverse proxy with TLS, and backups (`pg_dump` timer). Converting to Quadlet happens later, per your plan.
+14. **Application shell and page layout:** the top navbar becomes a `SideNav` inside `AppShell`
+    (no `topNav`), collapsible, with the brand in the header and the account controls in the
+    footer. Every page gets one frame — `Layout` with a pinned `LayoutHeader` (title,
+    description, actions) over a scrolling `LayoutContent` — instead of each page repeating
+    its own header stack. Page regions use `Section`, discrete rows keep `Card`. Responsiveness
+    comes from AppShell's own mobile drawer plus `Grid columns={{ minWidth, max }}`; no
+    hand-written CSS.
 
 ## Verification
 

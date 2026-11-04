@@ -77,7 +77,7 @@ describe("decideReply", () => {
         confidence: 0.99,
         lead: {
           name: null,
-          phone: null,
+          phone: "01700000000",
           address: null,
           items: [{ name: "Denim Pant", quantity: null, variant: null }],
         },
@@ -123,5 +123,64 @@ describe("handoffDecision", () => {
       reason: "something broke",
       draft: "",
     });
+  });
+});
+
+describe("orders still being collected", () => {
+  const base = {
+    confidence: 0.9,
+    needsHuman: false,
+    handoffReason: null,
+    intent: "order" as const,
+    sourceIds: [],
+  };
+
+  test("does not hand off for a lead with items but no way to reach the customer", () => {
+    const result = decideReply({
+      output: {
+        ...base,
+        reply: "Sure, how many would you like?",
+        lead: {
+          name: null,
+          phone: null,
+          address: null,
+          items: [{ name: "Cotton Shirt", quantity: 2, variant: null }],
+        },
+      },
+      threshold: 0.5,
+    });
+
+    expect(result.action).toBe("send");
+  });
+
+  test("hands off once a phone number arrives", () => {
+    const result = decideReply({
+      output: {
+        ...base,
+        reply: "Got it, confirming now.",
+        lead: {
+          name: null,
+          phone: "01700000000",
+          address: null,
+          items: [{ name: "Cotton Shirt", quantity: 2, variant: null }],
+        },
+      },
+      threshold: 0.5,
+    });
+
+    expect(result.action).toBe("handoff");
+  });
+
+  test("hands off once an address arrives", () => {
+    const result = decideReply({
+      output: {
+        ...base,
+        reply: "Got it, confirming now.",
+        lead: { name: null, phone: null, address: "Mirpur", items: [] },
+      },
+      threshold: 0.5,
+    });
+
+    expect(result.action).toBe("handoff");
   });
 });

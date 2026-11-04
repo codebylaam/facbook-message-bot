@@ -1,7 +1,12 @@
-import { listFaqsForPage, listPoliciesForPage, listProductsForPage } from "@fb-bot/db";
+import {
+  listDocumentContentsForPage,
+  listFaqsForPage,
+  listPoliciesForPage,
+  listProductsForPage,
+} from "@fb-bot/db";
 import type { WorkerDeps } from "../deps.ts";
 import { reembedSource } from "./embed.ts";
-import { faqSearchText, policySearchText, productSearchText } from "./text.ts";
+import { documentSearchText, faqSearchText, policySearchText, productSearchText } from "./text.ts";
 
 export async function embedStandaloneKnowledge(deps: WorkerDeps, pageId: string): Promise<number> {
   let chunks = 0;
@@ -36,6 +41,17 @@ export async function embedStandaloneKnowledge(deps: WorkerDeps, pageId: string)
       sourceType: "product",
       sourceId: product.id,
       text: productSearchText(product),
+    });
+  }
+
+  const documents = await listDocumentContentsForPage(deps.db, pageId);
+
+  for (const document of documents) {
+    chunks += await reembedSource(deps, {
+      pageId,
+      sourceType: "document",
+      sourceId: document.id,
+      text: documentSearchText(document),
     });
   }
 

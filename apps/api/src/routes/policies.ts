@@ -1,5 +1,6 @@
 import {
   createPolicyForPage,
+  deleteChunksForSource,
   deletePolicyForPage,
   listPoliciesForPage,
   updatePolicyForPage,
@@ -73,6 +74,9 @@ policiesRoute.delete("/:id", async (c) => {
   if (!removed) {
     throw new HTTPException(404, { message: "Policy not found" });
   }
+
+  // Without this the deleted policy stays retrievable, and the bot keeps quoting it.
+  await deleteChunksForSource(db, pageId, "policy", c.req.param("id"));
 
   return c.json({ success: true });
 });

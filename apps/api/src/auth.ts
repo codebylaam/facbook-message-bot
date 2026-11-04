@@ -2,13 +2,13 @@ import { accounts, sessions, users, verifications } from "@fb-bot/db/schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "./db.ts";
-import { env } from "./env.ts";
+import { env, webOrigins } from "./env.ts";
 
 export const auth = betterAuth({
   appName: "FB Bot",
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
-  trustedOrigins: [env.WEB_ORIGIN],
+  trustedOrigins: webOrigins,
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {

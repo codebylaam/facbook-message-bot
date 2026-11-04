@@ -3,14 +3,13 @@ import { Banner } from "@astryxdesign/core/Banner";
 import { Button } from "@astryxdesign/core/Button";
 import { Card } from "@astryxdesign/core/Card";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
-import { Heading } from "@astryxdesign/core/Heading";
 import { HStack } from "@astryxdesign/core/HStack";
 import { Selector } from "@astryxdesign/core/Selector";
 import { Text } from "@astryxdesign/core/Text";
 import { VStack } from "@astryxdesign/core/VStack";
 import type { AdminUser, Plan } from "@fb-bot/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   adminPlansQueryOptions,
@@ -19,8 +18,15 @@ import {
   setUserRole,
 } from "../../features/billing/api.ts";
 import { getApiErrorMessage } from "../../lib/api/errors.ts";
+import { Page } from "../../lib/page.tsx";
 
 export const Route = createFileRoute("/_app/admin")({
+  beforeLoad: ({ context }) => {
+    // The API answers 403 to anyone else, so send them back before the loader runs.
+    if (context.session.user.role !== "admin") {
+      throw redirect({ to: "/" });
+    }
+  },
   loader: ({ context }) =>
     Promise.all([
       context.queryClient.ensureQueryData(adminUsersQueryOptions),
@@ -131,15 +137,10 @@ function AdminPage() {
   const planList = plans.data ?? [];
 
   return (
-    <VStack gap={6}>
-      <VStack gap={1}>
-        <Heading level={1}>Admin</Heading>
-        <Text type="supporting">
-          Assign a plan by hand. There is no payment gateway yet, so this is the only way a seller
-          gets more replies.
-        </Text>
-      </VStack>
-
+    <Page
+      title="Admin"
+      description="Assign a plan by hand. There is no payment gateway yet, so this is the only way a seller gets more replies."
+    >
       {error ? <Banner container="card" status="error" title={error} /> : null}
 
       {rows.length === 0 ? (
@@ -156,6 +157,6 @@ function AdminPage() {
           ))}
         </VStack>
       )}
-    </VStack>
+    </Page>
   );
 }

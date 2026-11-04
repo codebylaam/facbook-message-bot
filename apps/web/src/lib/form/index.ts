@@ -1,5 +1,6 @@
 import { createFormHook } from "@tanstack/react-form";
 import { fieldContext, formContext } from "./context.ts";
+import { FileField } from "./fields/file-field.tsx";
 import { NumberField } from "./fields/number-field.tsx";
 import { SelectField } from "./fields/select-field.tsx";
 import { SubmitButton } from "./fields/submit-button.tsx";
@@ -14,6 +15,7 @@ export const { useAppForm, withForm } = createFormHook({
     NumberField,
     SelectField,
     SwitchField,
+    FileField,
   },
   formComponents: { SubmitButton },
   fieldContext,

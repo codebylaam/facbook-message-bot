@@ -34,3 +34,6 @@ coverage/
 
 # scratch
 scratchpad/
+
+# local https certificate for Facebook Login in development
+.certs/

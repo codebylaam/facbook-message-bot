@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { secureHeaders } from "hono/secure-headers";
 import { auth } from "./auth.ts";
-import { env } from "./env.ts";
+import { webOrigins } from "./env.ts";
 import type { AppEnv } from "./middleware/auth.ts";
 import { errorHandler } from "./middleware/error-handler.ts";
 import { rateLimit } from "./middleware/rate-limit.ts";
@@ -13,6 +13,7 @@ import { commentsRoute } from "./routes/comments.ts";
 import { conversationsRoute } from "./routes/conversations.ts";
 import { dashboardRoute } from "./routes/dashboard.ts";
 import { dataDeletionRoute } from "./routes/data-deletion.ts";
+import { documentsRoute } from "./routes/documents.ts";
 import { eventsRoute } from "./routes/events.ts";
 import { faqsRoute } from "./routes/faqs.ts";
 import { healthRoute } from "./routes/health.ts";
@@ -43,7 +44,7 @@ export function createApp() {
     await secure(c, next);
   });
 
-  app.use("*", cors({ origin: env.WEB_ORIGIN, credentials: true }));
+  app.use("*", cors({ origin: webOrigins, credentials: true }));
 
   app.onError(errorHandler);
 
@@ -57,6 +58,7 @@ export function createApp() {
   app.route("/api/pages", pagesRoute);
   app.route("/api/products", productsRoute);
   app.route("/api/faqs", faqsRoute);
+  app.route("/api/documents", documentsRoute);
   app.route("/api/policies", policiesRoute);
   app.route("/api/posts", postsRoute);
   app.route("/api/knowledge", knowledgeRoute);

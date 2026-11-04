@@ -1,6 +1,7 @@
 import { parseJsonContent } from "../extraction.ts";
 import type { LlmClient } from "../llm-types.ts";
 import { queryRewriteSchema, type RawQueryRewrite } from "./schema.ts";
+import { resolveLanguage } from "./script.ts";
 import type { CustomerLanguage, QueryRewrite, ReplyTurn } from "./types.ts";
 
 const REWRITE_SYSTEM_PROMPT = [
@@ -54,7 +55,7 @@ export async function rewriteQuery(
   return {
     query: raw.query.trim().length > 0 ? raw.query.trim() : input.message,
     intent: raw.intent,
-    language: raw.language,
+    language: resolveLanguage(input.message, raw.language),
   };
 }
 

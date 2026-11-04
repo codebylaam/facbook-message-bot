@@ -8,6 +8,10 @@ export const META_SCOPES = [
   "pages_manage_metadata",
   "pages_read_user_content",
   "pages_manage_engagement",
+  // Meta documents this as a dependency of pages_messaging and pages_show_list:
+  // "The business_management permission is a dependency for pages_messaging,
+  // pages_show_list ... Call this out in your App Review submission."
+  "business_management",
 ] as const;
 
 export function buildLoginUrl(

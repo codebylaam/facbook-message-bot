@@ -1,5 +1,6 @@
 import {
   countChunksForPage,
+  countDocumentsForPage,
   countPostsForPage,
   countProductsForPage,
   countUnembeddedChunksForPage,
@@ -27,15 +28,17 @@ knowledgeRoute.get("/", async (c) => {
     throw new HTTPException(404, { message: "Page not found" });
   }
 
-  const [posts, products, drafts, faqs, policies, chunks, unembedded] = await Promise.all([
-    countPostsForPage(db, pageId),
-    countProductsForPage(db, pageId),
-    listProductsForPage(db, pageId, { status: "draft" }),
-    listFaqsForPage(db, pageId),
-    listPoliciesForPage(db, pageId),
-    countChunksForPage(db, pageId),
-    countUnembeddedChunksForPage(db, pageId),
-  ]);
+  const [posts, products, drafts, faqs, policies, documents, chunks, unembedded] =
+    await Promise.all([
+      countPostsForPage(db, pageId),
+      countProductsForPage(db, pageId),
+      listProductsForPage(db, pageId, { status: "draft" }),
+      listFaqsForPage(db, pageId),
+      listPoliciesForPage(db, pageId),
+      countDocumentsForPage(db, pageId),
+      countChunksForPage(db, pageId),
+      countUnembeddedChunksForPage(db, pageId),
+    ]);
 
   return c.json({
     pageId,
@@ -44,6 +47,7 @@ knowledgeRoute.get("/", async (c) => {
     draftProducts: drafts.length,
     faqs: faqs.length,
     policies: policies.length,
+    documents,
     chunks,
     unembeddedChunks: unembedded,
     lastSyncedAt: iso(page.lastSyncedAt),

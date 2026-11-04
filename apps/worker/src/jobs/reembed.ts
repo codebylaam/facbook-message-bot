@@ -1,4 +1,5 @@
 import {
+  findDocumentById,
   findFaqForPage,
   findPageProfile,
   findPolicyForPage,
@@ -9,7 +10,12 @@ import { profileLines } from "@fb-bot/meta";
 import type { ReembedJob } from "@fb-bot/shared";
 import type { WorkerDeps } from "../deps.ts";
 import { reembedSource } from "../ingest/embed.ts";
-import { faqSearchText, policySearchText, productSearchText } from "../ingest/text.ts";
+import {
+  documentSearchText,
+  faqSearchText,
+  policySearchText,
+  productSearchText,
+} from "../ingest/text.ts";
 
 export type ReembedResult = {
   sourceType: ReembedJob["sourceType"];
@@ -60,6 +66,11 @@ async function resolveSourceText(deps: WorkerDeps, job: ReembedJob): Promise<str
     case "page_profile": {
       const profile = await findPageProfile(deps.db, job.pageId);
       return profile ? profileLines(profile).join("\n") : undefined;
+    }
+
+    case "document": {
+      const document = await findDocumentById(deps.db, job.sourceId);
+      return document ? documentSearchText(document) : undefined;
     }
 
     default:

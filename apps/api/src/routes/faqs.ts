@@ -1,4 +1,10 @@
-import { createFaqForPage, deleteFaqForPage, listFaqsForPage, updateFaqForPage } from "@fb-bot/db";
+import {
+  createFaqForPage,
+  deleteChunksForSource,
+  deleteFaqForPage,
+  listFaqsForPage,
+  updateFaqForPage,
+} from "@fb-bot/db";
 import { createFaqSchema, QUEUES, updateFaqSchema } from "@fb-bot/shared";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
@@ -68,6 +74,9 @@ faqsRoute.delete("/:id", async (c) => {
   if (!removed) {
     throw new HTTPException(404, { message: "FAQ not found" });
   }
+
+  // Without this the deleted answer stays retrievable, and the bot keeps quoting it.
+  await deleteChunksForSource(db, pageId, "faq", c.req.param("id"));
 
   return c.json({ success: true });
 });

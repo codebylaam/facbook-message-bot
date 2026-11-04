@@ -53,11 +53,12 @@ describe("app review runbook", () => {
 });
 
 describe("scope set", () => {
-  test("asks for no more than the six documented permissions", () => {
+  test("asks for the documented permissions and nothing else", () => {
     const scopes: string[] = [...META_SCOPES];
 
     expect(scopes.sort()).toEqual(
       [
+        "business_management",
         "pages_manage_engagement",
         "pages_manage_metadata",
         "pages_messaging",
@@ -66,6 +67,10 @@ describe("scope set", () => {
         "pages_show_list",
       ].sort(),
     );
+  });
+
+  test("includes the dependency Meta requires for pages_messaging", () => {
+    expect(META_SCOPES).toContain("business_management" as never);
   });
 
   test("subscribes to the four documented fields", () => {

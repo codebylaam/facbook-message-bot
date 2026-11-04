@@ -7,9 +7,23 @@ change in code that is not reflected here fails the suite.
 ## 1. Create the app
 
 1. <https://developers.facebook.com/apps> → **Create app** → type **Business**.
-2. Add the products **Facebook Login for Business** and **Webhooks**.
-3. Add your own Page under **App roles → Roles**, as an admin, so it can be used in
+2. Select these two **use cases**. They are what make the scopes available at all:
+   without the Messenger one, the login dialog answers
+   `Invalid Scopes: pages_messaging, pages_manage_metadata` and never grants them.
+
+   | Use case                                         | What it gives this app                                                                                                                                                             |
+   | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+   | **Engage with customers on Messenger from Meta** | `pages_messaging`, `pages_manage_metadata`, `business_management` — all required                                                                                                   |
+   | **Manage everything on your Page**               | `pages_show_list` and `business_management` required; add the optional `pages_read_engagement`, `pages_read_user_content` and `pages_manage_engagement` for ingestion and comments |
+
+3. Add the products **Facebook Login for Business** and **Webhooks**; the use cases
+   usually add both already.
+4. Add your own Page under **App roles → Roles**, as an admin, so it can be used in
    development.
+
+A use case cannot be removed once it is added, and incompatible ones are greyed out:
+**Authenticate and request data from users with Facebook Login** cannot be combined
+with **Manage everything on your Page**.
 
 ## 2. Server environment
 
@@ -48,14 +62,15 @@ change in code that is not reflected here fails the suite.
 
 ## 5. Permissions to submit
 
-| Scope                     | What it is used for                                          | What to show in the screencast                        |
-| ------------------------- | ------------------------------------------------------------ | ----------------------------------------------------- |
-| `pages_show_list`         | Listing the Pages the seller administers in the connect step | Connect a Page and show the picker                    |
-| `pages_messaging`         | Sending the bot reply and the private comment reply          | Message the Page, get an automatic answer             |
-| `pages_read_engagement`   | Reading the Page profile and its posts for ingestion         | Press Sync now and show products extracted            |
-| `pages_manage_metadata`   | Subscribing the app to the Page's webhooks                   | Show the chat still answering after a reload          |
-| `pages_read_user_content` | Reading comments on the Page's posts                         | Comment on a post and show it in Comments             |
-| `pages_manage_engagement` | Posting the optional public comment reply                    | Show a comment answered publicly as well as privately |
+| Scope                     | What it is used for                                            | What to show in the screencast                               |
+| ------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------ |
+| `pages_show_list`         | Listing the Pages the seller administers in the connect step   | Connect a Page and show the picker                           |
+| `pages_messaging`         | Sending the bot reply and the private comment reply            | Message the Page, get an automatic answer                    |
+| `pages_read_engagement`   | Reading the Page profile and its posts for ingestion           | Press Sync now and show products extracted                   |
+| `pages_manage_metadata`   | Subscribing the app to the Page's webhooks                     | Show the chat still answering after a reload                 |
+| `pages_read_user_content` | Reading comments on the Page's posts                           | Comment on a post and show it in Comments                    |
+| `pages_manage_engagement` | Posting the optional public comment reply                      | Show a comment answered publicly as well as privately        |
+| `business_management`     | Required dependency of `pages_messaging` and `pages_show_list` | Named in the use case description, not a separate screencast |
 
 ## 6. Screencast script
 

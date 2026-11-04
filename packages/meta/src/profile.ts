@@ -10,7 +10,14 @@ export type FacebookPageProfile = {
   hours: Record<string, string> | null;
 };
 
-const PROFILE_FIELDS = "about,description,phone,address,website,emails,hours";
+/**
+ * A Page has no `address` field any more: asking for it fails the whole request
+ * with "(#100) Tried accessing nonexisting field (address)", which used to leave
+ * every Page stuck on the pending sync. `location` is the field that carries it.
+ */
+const PROFILE_FIELDS = "about,description,phone,location,website,emails,hours";
+
+const LOCATION_PARTS = ["street", "city", "zip", "country"] as const;
 
 function toNullableString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
@@ -38,6 +45,19 @@ function toHours(value: unknown): Record<string, string> | null {
   return hours.length > 0 ? Object.fromEntries(hours) : null;
 }
 
+function toAddress(value: unknown): string | null {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+
+  const location = value as Record<string, unknown>;
+  const parts = LOCATION_PARTS.map((part) => toNullableString(location[part])).filter(
+    (part): part is string => part !== null,
+  );
+
+  return parts.length > 0 ? parts.join(", ") : null;
+}
+
 export async function fetchPageProfile(
   graphApi: GraphApi,
   options: { pageId: string; pageAccessToken: string },
@@ -51,7 +71,7 @@ export async function fetchPageProfile(
     about: toNullableString(response.about),
     description: toNullableString(response.description),
     phone: toNullableString(response.phone),
-    address: toNullableString(response.address),
+    address: toAddress(response.location),
     website: toNullableString(response.website),
     emails: toEmails(response.emails),
     hours: toHours(response.hours),

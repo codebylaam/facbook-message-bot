@@ -22,7 +22,7 @@ export type SyncPostsJob = {
 
 export type ReembedJob = {
   pageId: string;
-  sourceType: "page_profile" | "post" | "product" | "faq" | "policy";
+  sourceType: "page_profile" | "post" | "product" | "faq" | "policy" | "document";
   sourceId: string;
 };
 

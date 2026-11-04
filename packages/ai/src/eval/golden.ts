@@ -439,10 +439,11 @@ export const GOLDEN_CASES: GoldenCase[] = [
     expects: mustHandoff,
   },
   {
+    // No details yet, so the bot collects them; the handoff follows a real lead.
     id: "bn-order-confirm",
     language: "bn",
     question: "আমি ২টা শার্ট অর্ডার করতে চাই",
-    expects: mustHandoff,
+    expects: { handoff: false },
   },
   {
     id: "en-order-with-phone",
@@ -463,9 +464,11 @@ export const GOLDEN_CASES: GoldenCase[] = [
     expects: mustHandoff,
   },
   {
+    // The catalogue lists the colours exhaustively, so "no, only blue and black"
+    // is a grounded answer rather than a guess.
     id: "bn-stock-other-color",
     language: "bn",
     question: "শার্টের লাল কালার আছে?",
-    expects: mustHandoff,
+    expects: { handoff: false },
   },
 ];

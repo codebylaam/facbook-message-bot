@@ -1,7 +1,7 @@
 # Taste
 
 - Prefers React 19 with the React Compiler enabled. Confidence: 0.85
-- Uses Astryx as the design system and explicitly avoids Tailwind. Confidence: 0.85
+- Uses Astryx as the design system and explicitly avoids Tailwind; expects the design system's components/props to carry the styling so hand-written CSS is unnecessary unless genuinely needed. Confidence: 0.85
 - Every form should use TanStack Form with its form-context architecture (not ad-hoc form state). Confidence: 0.85
 - Uses TanStack Query for data fetching (with axios only when needed). Confidence: 0.8
 - Expects standard React patterns/conventions to be followed before writing any component. Confidence: 0.8
@@ -21,3 +21,20 @@
 - Expects to be asked before pulling large images, installing multi-GB dependencies, or starting processes that consume significant RAM/disk — a buried note is not consent for resource-heavy setup. Confidence: 0.7
 - Prefers model/AI capabilities be reached through hosted provider APIs (e.g. the CommandCode Provider API, Cloudflare Workers AI) rather than self-hosting or installing anything locally. Confidence: 0.7
 - Readily supplies real provider credentials when asked, so external integrations are verified against the live service rather than trusted from stubs/mocks. Confidence: 0.55
+- Prefers running only the affected/targeted tests while iterating on a fix (e.g. `bun run eval --only <case-id>`) and reserving the slow full suite for a single run at the very end, rather than repeatedly running the whole suite to verify each change. Confidence: 0.8
+- Expects any progress/todo checklist shown to them to stay truthful: items must be marked complete as work finishes and stale lists cleared, since an out-of-date panel makes them question whether the work was actually done. Confidence: 0.6
+- When a reported bug is really a class of bug (one page failed because of a shared precondition), expects every affected page/call-site found and fixed together, not just the one they named. Confidence: 0.65
+- Expects navigation to match what is actually usable: a link to a screen that needs a prerequisite (e.g. a connected Page) should be hidden until the prerequisite exists, rather than shown and then redirected away. Confidence: 0.6
+- Expects the app to work for a brand-new account with no data — a fresh signup must render empty states, never an error page. Confidence: 0.6
+- Verifies the product by actually using the running app, so expects user-facing flows (signup, first visit, primary button) exercised end-to-end as a real user would, not just covered by unit tests. Confidence: 0.6
+- Dislikes silent hangs: a UI action that depends on an external SDK should fail fast with an actionable message (explicit timeout) instead of spinning indefinitely. Confidence: 0.55
+- Reports problems by pasting the literal user-visible error/UI message text verbatim — sometimes the raw browser URL plus the message, often the agent's own prior message, and with the relevant file/lines selected in the IDE — rather than describing them; expects the agent to diagnose and resolve from that exact string. Confidence: 0.6
+- When the state to report is visual (a dashboard form, a screenshot-worthy UI), attaches a screenshot instead of transcribing it — even after being told image reads are failing and asked to paste the text. Confidence: 0.55
+- Re-pastes the same failure verbatim when a previously claimed fix did not actually work, so a diagnosis should be verified against the live/running system before being presented as resolved. Confidence: 0.55
+- Expects the agent to go read the codebase and find the cause itself instead of being told what to check or handed a theory — pushes back sharply ("why you telling me? check the code") when given instructions or explanations rather than a code-level diagnosis. Confidence: 0.6
+- Prefers local dev servers to run on plain http with TLS terminated externally by a Cloudflare tunnel, rather than generating/installing a local dev CA and serving https locally — happy to delete dev-cert tooling once the tunnel covers it. Confidence: 0.55
+- Supplies raw evidence verbatim instead of summarising: full DevTools console output and stack traces, pasted shell/curl output from their own terminal (e.g. the raw body returned by `curl -s https://<host>/health`), and small evaluated expressions (e.g. `"__buffer" in FB` returning false) as the basis for a report. Confidence: 0.65
+- Prefers a sidebar (nav rail) over a top navbar for application layout. Confidence: 0.55
+- Expects interfaces to be responsive across desktop and phone widths by default, without having to ask for it. Confidence: 0.6
+- Expects a component's documentation/contents to be read before the component is used, so its context and props are understood first. Confidence: 0.6
+- Has a high bar for visual polish: bluntly rejects UI that looks ugly and expects a genuinely well-designed interface, not merely a functional one. Confidence: 0.55

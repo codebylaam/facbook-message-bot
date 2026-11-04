@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const dashboardSchema = z.object({
-  pageId: z.string(),
+  pageId: z.string().nullable(),
   conversations: z.number(),
   inHumanMode: z.number(),
   inboundMessages: z.number(),

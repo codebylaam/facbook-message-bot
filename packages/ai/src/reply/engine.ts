@@ -1,7 +1,8 @@
-import type { LlmClient } from "../llm-types.ts";
+import type { ChatUsage, LlmClient } from "../llm-types.ts";
 import { decideReply, handoffDecision } from "./decide.ts";
 import { generateReply } from "./generate.ts";
 import { rewriteQueryWithFallback } from "./query-rewrite.ts";
+import { replyMatchesScript } from "./script.ts";
 import type { ReplyEngineResult, ReplyKnowledge, ReplyTurn, Retrieve } from "./types.ts";
 
 export type ReplyEngineInput = {
@@ -31,14 +32,29 @@ export async function runReplyEngine(input: ReplyEngineInput): Promise<ReplyEngi
   const retrieved = await input.retrieve(rewrite.query);
 
   try {
-    const { output, usage } = await generateReply(input.llm, {
+    const generateInput = {
       knowledge: input.knowledge,
       retrieved,
       summary: input.summary ?? null,
       history,
       message: input.message,
       language: rewrite.language,
-    });
+    };
+
+    let { output, usage } = await generateReply(input.llm, generateInput);
+
+    // The model sometimes answers an English question with Bangla taken straight
+    // from the context ("Delivery is ৬০ টাকা"). One corrective retry fixes it; if
+    // the retry is still mixed it is sent anyway, since a reply beats silence.
+    if (!replyMatchesScript(output.reply, rewrite.language)) {
+      try {
+        const retry = await generateReply(input.llm, { ...generateInput, scriptRetry: true });
+        output = retry.output;
+        usage = sumUsage(usage, retry.usage);
+      } catch {
+        // Keep the first reply: a failed retry must not turn an answer into a handoff.
+      }
+    }
 
     return {
       rewrite,
@@ -60,4 +76,15 @@ export async function runReplyEngine(input: ReplyEngineInput): Promise<ReplyEngi
       usage: {},
     };
   }
+}
+
+function sumUsage(a: ChatUsage, b: ChatUsage): ChatUsage {
+  const add = (x?: number, y?: number) =>
+    x === undefined && y === undefined ? undefined : (x ?? 0) + (y ?? 0);
+
+  return {
+    promptTokens: add(a.promptTokens, b.promptTokens),
+    completionTokens: add(a.completionTokens, b.completionTokens),
+    totalTokens: add(a.totalTokens, b.totalTokens),
+  };
 }

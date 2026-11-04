@@ -5,16 +5,29 @@ import type {
   DiscoverPagesInput,
   LoginConfig,
 } from "@fb-bot/shared";
-import { queryOptions } from "@tanstack/react-query";
+import { type QueryClient, queryOptions } from "@tanstack/react-query";
 import { api } from "../../lib/api/client.ts";
 
 export const pagesQueryOptions = queryOptions({
   queryKey: ["pages"] as const,
+  staleTime: 0,
   queryFn: async (): Promise<ConnectedPage[]> => {
     const response = await api.get<{ pages: ConnectedPage[] }>("/api/pages");
     return response.data.pages;
   },
 });
+
+/**
+ * Guard loads run fresh, so connecting a Page takes effect on the next navigation.
+ */
+export async function loadPages(queryClient: QueryClient): Promise<ConnectedPage[]> {
+  try {
+    return await queryClient.fetchQuery(pagesQueryOptions);
+  } catch (error) {
+    console.error("[web] could not load the connected pages", error);
+    return [];
+  }
+}
 
 export const loginConfigQueryOptions = queryOptions({
   queryKey: ["pages", "login-config"] as const,

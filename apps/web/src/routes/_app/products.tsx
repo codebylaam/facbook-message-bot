@@ -5,6 +5,7 @@ import { Card } from "@astryxdesign/core/Card";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
 import { Heading } from "@astryxdesign/core/Heading";
 import { HStack } from "@astryxdesign/core/HStack";
+import { Section } from "@astryxdesign/core/Section";
 import { Text } from "@astryxdesign/core/Text";
 import { VStack } from "@astryxdesign/core/VStack";
 import type { Product } from "@fb-bot/shared";
@@ -21,6 +22,7 @@ import {
 } from "../../features/knowledge/api.ts";
 import { getApiErrorMessage } from "../../lib/api/errors.ts";
 import { useAppForm } from "../../lib/form/index.ts";
+import { Page } from "../../lib/page.tsx";
 
 export const Route = createFileRoute("/_app/products")({
   loader: ({ context }) => context.queryClient.ensureQueryData(productsQueryOptions()),
@@ -133,7 +135,7 @@ function ProductForm({
   });
 
   return (
-    <Card>
+    <Section>
       <VStack gap={4}>
         <Heading level={2}>{product ? "Edit product" : "Add a product"}</Heading>
 
@@ -203,7 +205,7 @@ function ProductForm({
           </VStack>
         </form>
       </VStack>
-    </Card>
+    </Section>
   );
 }
 
@@ -231,19 +233,17 @@ function ProductsPage() {
   const visible = filter === "all" ? all : all.filter((product) => product.status === filter);
 
   return (
-    <VStack gap={6}>
-      <HStack align="center" gap={3} justify="between">
-        <VStack gap={1}>
-          <Heading level={1}>Products</Heading>
-          <Text type="supporting">The catalog the bot answers price and stock questions from.</Text>
-        </VStack>
+    <Page
+      title="Products"
+      description="The catalog the bot answers price and stock questions from."
+      actions={
         <Button
           label="Add product"
           isDisabled={isAdding || editing !== null}
           onClick={() => setIsAdding(true)}
         />
-      </HStack>
-
+      }
+    >
       {error ? <Banner container="card" status="error" title={error} /> : null}
 
       {drafts.length > 0 ? (
@@ -349,6 +349,6 @@ function ProductsPage() {
           })}
         </VStack>
       )}
-    </VStack>
+    </Page>
   );
 }

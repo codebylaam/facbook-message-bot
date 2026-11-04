@@ -20,7 +20,7 @@ describe("fetchPageProfile", () => {
           about: "Handmade clothing",
           description: "We ship across Bangladesh",
           phone: "+8801000000000",
-          address: "Dhaka",
+          location: { street: "Badda", city: "Dhaka", zip: "1212", country: "Bangladesh" },
           website: "https://shop.test",
           emails: ["shop@test.local"],
           hours: { mon_1_open: "09:00", mon_1_close: "21:00" },
@@ -35,10 +35,36 @@ describe("fetchPageProfile", () => {
 
     expect(profile.about).toBe("Handmade clothing");
     expect(profile.phone).toBe("+8801000000000");
+    expect(profile.address).toBe("Badda, Dhaka, 1212, Bangladesh");
     expect(profile.emails).toEqual(["shop@test.local"]);
     expect(profile.hours).toEqual({ mon_1_open: "09:00", mon_1_close: "21:00" });
     expect(searchParams(0).get("access_token")).toBe("page-token");
     expect(searchParams(0).get("fields")).toContain("about");
+  });
+
+  test("asks for location, because asking for address fails the whole request", async () => {
+    const { fetchImpl, searchParams } = createStubFetch([{ body: {} }]);
+
+    await fetchPageProfile(createGraphApi(config, fetchImpl), {
+      pageId: "PAGE_1",
+      pageAccessToken: "t",
+    });
+
+    const fields = searchParams(0).get("fields") ?? "";
+
+    expect(fields).toContain("location");
+    expect(fields).not.toContain("address");
+  });
+
+  test("flattens only the location parts that are set", async () => {
+    const { fetchImpl } = createStubFetch([{ body: { location: { city: "Dhaka", zip: "  " } } }]);
+
+    const profile = await fetchPageProfile(createGraphApi(config, fetchImpl), {
+      pageId: "PAGE_1",
+      pageAccessToken: "t",
+    });
+
+    expect(profile.address).toBe("Dhaka");
   });
 
   test("turns blank strings into null", async () => {

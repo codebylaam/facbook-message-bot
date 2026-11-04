@@ -32,6 +32,7 @@ export const knowledgeSourceEnum = pgEnum("knowledge_source", [
   "product",
   "faq",
   "policy",
+  "document",
 ]);
 
 export const leadStatusEnum = pgEnum("lead_status", ["new", "contacted", "won", "lost"]);

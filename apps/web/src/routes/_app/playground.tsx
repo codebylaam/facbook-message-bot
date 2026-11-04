@@ -2,8 +2,8 @@ import { Badge } from "@astryxdesign/core/Badge";
 import { Banner } from "@astryxdesign/core/Banner";
 import { Button } from "@astryxdesign/core/Button";
 import { Card } from "@astryxdesign/core/Card";
-import { Heading } from "@astryxdesign/core/Heading";
 import { HStack } from "@astryxdesign/core/HStack";
+import { Section } from "@astryxdesign/core/Section";
 import { Text } from "@astryxdesign/core/Text";
 import { VStack } from "@astryxdesign/core/VStack";
 import type { PlaygroundResponse } from "@fb-bot/shared";
@@ -17,6 +17,7 @@ import {
 } from "../../features/playground/api.ts";
 import { getApiErrorMessage } from "../../lib/api/errors.ts";
 import { useAppForm } from "../../lib/form/index.ts";
+import { Page } from "../../lib/page.tsx";
 
 export const Route = createFileRoute("/_app/playground")({
   component: PlaygroundPage,
@@ -161,15 +162,10 @@ function PlaygroundPage() {
   const configured = config.data?.configured ?? false;
 
   return (
-    <VStack gap={6}>
-      <VStack gap={1}>
-        <Heading level={1}>Playground</Heading>
-        <Text type="supporting">
-          Ask what a customer would ask. This runs the real reply pipeline against your knowledge,
-          without touching Facebook.
-        </Text>
-      </VStack>
-
+    <Page
+      title="Playground"
+      description="Ask what a customer would ask. This runs the real reply pipeline against your knowledge, without touching Facebook."
+    >
       {config.isSuccess && !configured ? (
         <Banner
           container="card"
@@ -181,7 +177,7 @@ function PlaygroundPage() {
 
       {error ? <Banner container="card" status="error" title={error} /> : null}
 
-      <Card>
+      <Section>
         <VStack gap={4}>
           <HStack align="center" gap={2}>
             <Text type="supporting">Try one:</Text>
@@ -219,9 +215,9 @@ function PlaygroundPage() {
             </VStack>
           </form>
         </VStack>
-      </Card>
+      </Section>
 
       {result ? <ResultCard result={result} /> : null}
-    </VStack>
+    </Page>
   );
 }

@@ -8,7 +8,7 @@ import { Heading } from "@astryxdesign/core/Heading";
 import { HStack } from "@astryxdesign/core/HStack";
 import { Text } from "@astryxdesign/core/Text";
 import { VStack } from "@astryxdesign/core/VStack";
-import type { DiscoveredPage } from "@fb-bot/shared";
+import { type DiscoveredPage, isValidMetaAppId } from "@fb-bot/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
@@ -22,6 +22,7 @@ import {
 } from "../../features/pages/api.ts";
 import { loadFacebookSdk, loginWithFacebook } from "../../features/pages/facebook-sdk.ts";
 import { getApiErrorMessage } from "../../lib/api/errors.ts";
+import { Page } from "../../lib/page.tsx";
 
 export const Route = createFileRoute("/_app/pages")({
   loader: ({ context }) => context.queryClient.ensureQueryData(pagesQueryOptions),
@@ -45,7 +46,7 @@ function PagesPage() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isConfigured = (loginConfig.data?.appId.length ?? 0) > 0;
+  const isConfigured = isValidMetaAppId(loginConfig.data?.appId ?? "");
 
   const invalidatePages = () =>
     queryClient.invalidateQueries({ queryKey: pagesQueryOptions.queryKey });
@@ -127,14 +128,10 @@ function PagesPage() {
   const connectedPages = pages.data ?? [];
 
   return (
-    <VStack gap={6}>
-      <VStack gap={1}>
-        <Heading level={1}>Pages</Heading>
-        <Text type="supporting">
-          Connect a Facebook Page so the bot can answer its messages and comments.
-        </Text>
-      </VStack>
-
+    <Page
+      title="Pages"
+      description="Connect a Facebook Page so the bot can answer its messages and comments."
+    >
       {error ? <Banner container="card" status="error" title={error} /> : null}
 
       {connectedPages.some((page) => page.webhookStatus === "error") ? (
@@ -257,6 +254,6 @@ function PagesPage() {
           ) : null}
         </VStack>
       ) : null}
-    </VStack>
+    </Page>
   );
 }

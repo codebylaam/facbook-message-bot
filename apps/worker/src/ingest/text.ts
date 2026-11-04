@@ -49,3 +49,11 @@ export function faqSearchText(faq: { question: string; answer: string }): string
 export function policySearchText(policy: { title: string; content: string }): string {
   return `${policy.title}\n${policy.content}`;
 }
+
+/**
+ * The file name carries the topic as often as the body does, so it is indexed
+ * first rather than dropped.
+ */
+export function documentSearchText(document: { name: string; content: string }): string {
+  return `${document.name}\n${document.content}`;
+}

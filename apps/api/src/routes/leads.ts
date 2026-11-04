@@ -2,7 +2,7 @@ import { listLeadsWithCustomer } from "@fb-bot/db";
 import { Hono } from "hono";
 import { db } from "../db.ts";
 import { type AppEnv, requireSession } from "../middleware/auth.ts";
-import { resolveOwnedPageId } from "./page-scope.ts";
+import { resolveOptionalPageId } from "./page-scope.ts";
 
 export const leadsRoute = new Hono<AppEnv>();
 
@@ -10,7 +10,11 @@ leadsRoute.use("*", requireSession);
 
 leadsRoute.get("/", async (c) => {
   const user = c.get("user");
-  const pageId = await resolveOwnedPageId(db, user.id, c.req.query("pageId"));
+  const pageId = await resolveOptionalPageId(db, user.id, c.req.query("pageId"));
+
+  if (!pageId) {
+    return c.json({ pageId: null, leads: [] });
+  }
 
   const rows = await listLeadsWithCustomer(db, pageId, 100);
 

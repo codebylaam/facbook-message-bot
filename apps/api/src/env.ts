@@ -1,4 +1,4 @@
-import { parseEnv, serverEnvSchema } from "@fb-bot/shared";
+import { isValidMetaAppId, parseEnv, parseOrigins, serverEnvSchema } from "@fb-bot/shared";
 import { z } from "zod";
 
 export const env = parseEnv(
@@ -29,7 +29,16 @@ export const env = parseEnv(
   process.env,
 );
 
+/**
+ * The origins the browser app is served from: the tunnel hostname during
+ * development, the public domain in production. Comma separated to allow more
+ * than one.
+ */
+export const webOrigins = parseOrigins(env.WEB_ORIGIN);
+
 export const isMetaConfigured =
-  env.META_APP_ID.length > 0 && env.META_APP_SECRET.length > 0 && env.META_VERIFY_TOKEN.length > 0;
+  isValidMetaAppId(env.META_APP_ID) &&
+  env.META_APP_SECRET.length > 0 &&
+  env.META_VERIFY_TOKEN.length > 0;
 
 export const isLlmConfigured = env.CMD_API_KEY.length > 0;

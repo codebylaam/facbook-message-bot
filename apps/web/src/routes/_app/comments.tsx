@@ -3,8 +3,8 @@ import { Banner } from "@astryxdesign/core/Banner";
 import { Button } from "@astryxdesign/core/Button";
 import { Card } from "@astryxdesign/core/Card";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
-import { Heading } from "@astryxdesign/core/Heading";
 import { HStack } from "@astryxdesign/core/HStack";
+import { Section } from "@astryxdesign/core/Section";
 import { Selector } from "@astryxdesign/core/Selector";
 import { Text } from "@astryxdesign/core/Text";
 import { VStack } from "@astryxdesign/core/VStack";
@@ -19,9 +19,10 @@ import {
 } from "../../features/comments/api.ts";
 import { pagesQueryOptions } from "../../features/pages/api.ts";
 import { getApiErrorMessage } from "../../lib/api/errors.ts";
+import { Page } from "../../lib/page.tsx";
 
 export const Route = createFileRoute("/_app/comments")({
-  loader: ({ context }) => context.queryClient.ensureQueryData(commentsQueryOptions("flagged")),
+  loader: ({ context }) => context.queryClient.query(commentsQueryOptions("flagged")),
   component: CommentsPage,
 });
 
@@ -80,16 +81,12 @@ function CommentsPage() {
   const rows = comments.data ?? [];
 
   return (
-    <VStack gap={6}>
-      <VStack gap={1}>
-        <Heading level={1}>Comments</Heading>
-        <Text type="supporting">
-          Post comments the bot answered privately, and the ones it left for you.
-        </Text>
-      </VStack>
-
+    <Page
+      title="Comments"
+      description="Post comments the bot answered privately, and the ones it left for you."
+    >
       {page ? (
-        <Card>
+        <Section>
           <HStack align="center" gap={3} justify="between">
             <VStack gap={0.5}>
               <Text type="label">Comment replies on {page.name}</Text>
@@ -99,7 +96,7 @@ function CommentsPage() {
               </Text>
             </VStack>
 
-            <VStack width={280}>
+            <Section width={280} padding={0}>
               <Selector
                 label="Comment mode"
                 options={COMMENT_MODE_OPTIONS}
@@ -109,9 +106,9 @@ function CommentsPage() {
                 }
                 isDisabled={modeMutation.isPending}
               />
-            </VStack>
+            </Section>
           </HStack>
-        </Card>
+        </Section>
       ) : null}
 
       {error ? <Banner status="error" title={error} /> : null}
@@ -175,6 +172,6 @@ function CommentsPage() {
           })}
         </VStack>
       )}
-    </VStack>
+    </Page>
   );
 }

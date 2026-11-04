@@ -46,7 +46,7 @@ function scriptedLlm(rewrite: string, generate: string | (() => never)): LlmClie
 const REWRITE = '{"query":"shirt price","intent":"pricing","language":"banglish"}';
 
 const ANSWER = JSON.stringify({
-  reply: "শার্টের দাম ১২০০ টাকা।",
+  reply: "Shirt er dam 1200 taka.",
   confidence: 0.9,
   needs_human: false,
   handoff_reason: null,
@@ -72,7 +72,7 @@ describe("runReplyEngine", () => {
 
     expect(result.rewrite.query).toBe("shirt price");
     expect(result.retrieved).toHaveLength(1);
-    expect(result.decision).toEqual({ action: "send", reply: "শার্টের দাম ১২০০ টাকা।" });
+    expect(result.decision).toEqual({ action: "send", reply: "Shirt er dam 1200 taka." });
     expect(result.generationError).toBeNull();
   });
 
@@ -163,12 +163,26 @@ describe("runReplyEngine", () => {
         REWRITE,
         ANSWER.replace(
           '"lead":null',
-          '"lead":{"name":"Karim","phone":null,"address":null,"items":[{"name":"Cotton Shirt","quantity":2,"variant":"L"}]}',
+          '"lead":{"name":"Karim","phone":"01700000000","address":null,"items":[{"name":"Cotton Shirt","quantity":2,"variant":"L"}]}',
         ),
       ),
     });
 
     expect(result.decision.action).toBe("handoff");
+  });
+
+  test("keeps collecting while an order has no way to reach the customer", async () => {
+    const result = await engine({
+      llm: scriptedLlm(
+        REWRITE,
+        ANSWER.replace(
+          '"lead":null',
+          '"lead":{"name":null,"phone":null,"address":null,"items":[{"name":"Cotton Shirt","quantity":2,"variant":"L"}]}',
+        ),
+      ),
+    });
+
+    expect(result.decision.action).toBe("send");
   });
 
   test("passes the conversation summary and history to the model", async () => {
@@ -209,5 +223,76 @@ describe("runReplyEngine", () => {
         },
       }),
     ).rejects.toThrow(/database down/);
+  });
+  test("regenerates once when a Latin-script customer gets Bangla script", async () => {
+    const mixed = ANSWER.replace("Shirt er dam 1200 taka.", "Shirt er dam ১২০০ টাকা.");
+    const prompts: string[] = [];
+    const replies = [REWRITE, mixed, ANSWER];
+
+    const llm: LlmClient = {
+      chat: async (messages) => {
+        prompts.push(messages.map((message) => message.content).join("\n"));
+        return { content: replies.shift() ?? ANSWER, model: "test", usage: { totalTokens: 100 } };
+      },
+    };
+
+    const result = await engine({ llm });
+
+    expect(prompts).toHaveLength(3);
+    expect(prompts[2]).toContain("mixed in Bangla script");
+    expect(result.decision).toEqual({ action: "send", reply: "Shirt er dam 1200 taka." });
+    expect(result.usage.totalTokens).toBe(200);
+  });
+
+  test("does not regenerate a Bangla reply to a Bangla customer", async () => {
+    let calls = 0;
+    const bangla = ANSWER.replace("Shirt er dam 1200 taka.", "শার্টের দাম ১২০০ টাকা।");
+
+    const llm: LlmClient = {
+      chat: async () => {
+        calls += 1;
+        return {
+          content:
+            calls === 1 ? '{"query":"shirt price","intent":"pricing","language":"bn"}' : bangla,
+          model: "test",
+          usage: {},
+        };
+      },
+    };
+
+    const result = await engine({ llm, message: "শার্টের দাম কত?" });
+
+    expect(calls).toBe(2);
+    expect(result.decision.action).toBe("send");
+  });
+
+  test("keeps the first reply when the script retry fails", async () => {
+    const mixed = ANSWER.replace("Shirt er dam 1200 taka.", "Shirt er dam ১২০০ টাকা.");
+    let calls = 0;
+
+    const llm: LlmClient = {
+      chat: async () => {
+        calls += 1;
+
+        if (calls === 3) {
+          throw new Error("model unavailable");
+        }
+
+        return { content: calls === 1 ? REWRITE : mixed, model: "test", usage: {} };
+      },
+    };
+
+    const result = await engine({ llm });
+
+    expect(result.decision).toEqual({ action: "send", reply: "Shirt er dam ১২০০ টাকা." });
+  });
+
+  test("treats a Latin message as Banglish or English even if the rewrite says Bangla", async () => {
+    const result = await engine({
+      llm: scriptedLlm('{"query":"delivery charge","intent":"delivery","language":"bn"}', ANSWER),
+      message: "What are your delivery charges?",
+    });
+
+    expect(result.rewrite.language).toBe("en");
   });
 });

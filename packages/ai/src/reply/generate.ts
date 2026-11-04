@@ -24,6 +24,8 @@ export type GenerateReplyInput = {
   history: ReplyTurn[];
   message: string;
   language: CustomerLanguage;
+  /** Set on the second attempt after a reply came back in the wrong script. */
+  scriptRetry?: boolean;
 };
 
 export async function generateReply(

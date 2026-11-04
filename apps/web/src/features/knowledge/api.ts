@@ -2,6 +2,7 @@ import type {
   CreateFaqInput,
   CreatePolicyInput,
   CreateProductInput,
+  Document,
   Faq,
   KnowledgeSummary,
   Policy,
@@ -139,4 +140,30 @@ export async function setPostIncluded(
 
 export async function resyncPage(pageId: string) {
   await api.post(`/api/pages/${pageId}/resync`);
+}
+
+export const documentsQueryOptions = (pageId?: string) =>
+  queryOptions({
+    queryKey: ["documents", scope(pageId)] as const,
+    queryFn: async (): Promise<{ pageId: string; documents: Document[] }> => {
+      const response = await api.get<{ pageId: string; documents: Document[] }>("/api/documents", {
+        params: params(pageId),
+      });
+      return response.data;
+    },
+  });
+
+export async function createDocument(pageId: string | undefined, file: File) {
+  const body = new FormData();
+  body.append("file", file);
+
+  const response = await api.post<{ document: Document }>("/api/documents", body, {
+    params: params(pageId),
+  });
+
+  return response.data.document;
+}
+
+export async function deleteDocument(pageId: string | undefined, documentId: string) {
+  await api.delete(`/api/documents/${documentId}`, { params: params(pageId) });
 }

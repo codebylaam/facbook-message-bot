@@ -3,6 +3,7 @@ import { Banner } from "@astryxdesign/core/Banner";
 import { Button } from "@astryxdesign/core/Button";
 import { Card } from "@astryxdesign/core/Card";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
+import { Grid } from "@astryxdesign/core/Grid";
 import { Heading } from "@astryxdesign/core/Heading";
 import { HStack } from "@astryxdesign/core/HStack";
 import { Text } from "@astryxdesign/core/Text";
@@ -30,6 +31,7 @@ import {
 import { useInboxEvents } from "../../features/inbox/use-inbox-events.ts";
 import { getApiErrorMessage } from "../../lib/api/errors.ts";
 import { useAppForm } from "../../lib/form/index.ts";
+import { Page } from "../../lib/page.tsx";
 
 export const Route = createFileRoute("/_app/inbox")({
   loader: ({ context }) =>
@@ -325,14 +327,11 @@ function InboxPage() {
   };
 
   return (
-    <VStack gap={6}>
-      <VStack gap={1}>
-        <Heading level={1}>Inbox</Heading>
-        <Text type="supporting">
-          Every conversation, live. A draft means the bot was not confident enough to answer.
-        </Text>
-      </VStack>
-
+    <Page
+      title="Inbox"
+      description="Every conversation, live. A draft means the bot was not confident enough to answer."
+      contentWidth={1200}
+    >
       <HStack align="center" gap={2}>
         {FILTERS.map((option) => (
           <Button
@@ -346,8 +345,8 @@ function InboxPage() {
         <Text type="supporting">{conversations.data?.total ?? 0} conversations</Text>
       </HStack>
 
-      <HStack align="start" gap={4}>
-        <VStack gap={2} width={340}>
+      <Grid columns={{ minWidth: 320, max: 2 }} gap={4}>
+        <VStack gap={2}>
           {rows.length === 0 ? (
             <EmptyState
               title="Nothing here"
@@ -402,7 +401,7 @@ function InboxPage() {
           )}
         </VStack>
 
-        <VStack gap={3} width="100%">
+        <VStack gap={3}>
           {selectedId ? (
             <Thread key={selectedId} conversationId={selectedId} />
           ) : (
@@ -412,7 +411,7 @@ function InboxPage() {
             />
           )}
         </VStack>
-      </HStack>
-    </VStack>
+      </Grid>
+    </Page>
   );
 }

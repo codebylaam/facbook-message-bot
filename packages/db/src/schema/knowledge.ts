@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
+  integer,
   jsonb,
   numeric,
   pgTable,
@@ -90,6 +91,27 @@ export const policies = pgTable(
     ...timestamps(),
   },
   (t) => [index("policies_page_id_idx").on(t.pageId)],
+);
+
+/**
+ * A document the seller uploaded. Only the extracted text is kept: retrieval works
+ * from `knowledge_chunks`, so the original bytes would be dead weight in the
+ * database and in every backup.
+ */
+export const documents = pgTable(
+  "documents",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    pageId: uuid("page_id")
+      .notNull()
+      .references(() => fbPages.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    mimeType: text("mime_type").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    content: text("content").notNull(),
+    ...timestamps(),
+  },
+  (t) => [index("documents_page_id_idx").on(t.pageId)],
 );
 
 export const knowledgeChunks = pgTable(

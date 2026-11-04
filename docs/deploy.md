@@ -25,7 +25,8 @@ CMD_API_KEY=...
 ```
 
 `DATABASE_URL` must use the compose service name `postgres`, not `localhost`.
-`WEB_ORIGIN` becomes the Caddy origin, so CORS allows exactly one origin.
+`WEB_ORIGIN` becomes the Caddy origin. It is comma separated, so a deployment can
+allow more than one origin, but production needs only the one.
 
 ## 2. Bring it up
 
@@ -107,3 +108,57 @@ image, so the API URL is empty at build time and every request stays relative.
   driver.
 - No horizontal scaling: the rate limiter and the reply debounce assume one worker.
 - No automatic failover for Postgres; the volume is a single bind.
+
+## 8. Local development over a tunnel
+
+Facebook Login refuses to run from an http page (`FB.login` reports "can no longer
+be called from http pages" and never calls back), so the browser has to load the app
+over https. Run both servers on plain http and let a Cloudflare tunnel terminate TLS
+in front of them:
+
+```bash
+bun run dev:api      # http://localhost:3000
+bun run dev:web      # http://localhost:5173
+cloudflared tunnel run --token "$CLOUDFLARED_TOKEN"
+```
+
+Add two public hostnames to that tunnel in the Cloudflare dashboard
+(Zero Trust → Networks → Tunnels → your tunnel → Public Hostnames):
+
+| Hostname                 | Service                 |
+| ------------------------ | ----------------------- |
+| `fb-bot.example.com`     | `http://localhost:5173` |
+| `fb-bot-api.example.com` | `http://localhost:3000` |
+
+Both origins are plain http, so the TLS and proxy settings stay on their defaults.
+Leave Cloudflare Access off the API hostname: Meta's webhook `POST`s are server to
+server and cannot complete an interactive login.
+
+Then point the API at those origins in `apps/api/.env`:
+
+```bash
+WEB_ORIGIN=https://fb-bot.example.com
+BETTER_AUTH_URL=https://fb-bot-api.example.com
+```
+
+and the web app at the API in `apps/web/.env`:
+
+```bash
+VITE_API_URL=https://fb-bot-api.example.com
+VITE_ALLOWED_HOSTS=fb-bot.example.com
+```
+
+`VITE_ALLOWED_HOSTS` is required: Vite only installs its Host-header check when
+`server.https` is off, which is the case here, so every request arriving through the
+tunnel is rejected with `403 Blocked request` until the public hostname is listed.
+Comma separate the names, or use a leading dot (`.example.com`) to allow subdomains.
+
+Restart both servers and open `https://fb-bot.example.com`. The tunnel is also what
+Meta reaches, so the same API hostname serves the webhook
+(`https://fb-bot-api.example.com/webhooks/meta`) and the data deletion callback. Add
+the domain to the Meta app's App Domains and `https://fb-bot.example.com/pages` to
+its Valid OAuth Redirect URIs, per §3 of the runbook.
+
+The `tunnel` profile in `compose.dev.yaml` runs the same connector in a container,
+which is convenient when the API also runs there; on the host, `cloudflared` alone
+is the shorter path.

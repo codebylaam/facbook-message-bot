@@ -2,6 +2,7 @@ export * from "./billing.ts";
 export * from "./comments.ts";
 export * from "./conversations.ts";
 export * from "./customers.ts";
+export * from "./documents.ts";
 export * from "./faqs.ts";
 export * from "./inbox.ts";
 export * from "./knowledge-chunks.ts";

@@ -18,7 +18,16 @@ const asJson = process.argv.includes("--json");
 const limit = Number(flag("--limit") ?? GOLDEN_CASES.length);
 const confidenceThreshold = Number(flag("--threshold") ?? 0.7);
 
-const cases = GOLDEN_CASES.slice(0, Number.isFinite(limit) ? limit : GOLDEN_CASES.length);
+const only = flag("--only");
+const selected = only
+  ? GOLDEN_CASES.filter((testCase) => testCase.id.includes(only))
+  : GOLDEN_CASES;
+const cases = selected.slice(0, Number.isFinite(limit) ? limit : selected.length);
+
+if (only && cases.length === 0) {
+  console.error(`No golden case matches "${only}".`);
+  process.exit(1);
+}
 
 function buildLlm() {
   if (dry) {

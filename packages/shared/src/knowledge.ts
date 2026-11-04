@@ -84,6 +84,25 @@ export const updatePostSchema = z.object({
   included: z.boolean(),
 });
 
+/**
+ * What the Knowledge page lets a seller upload. The API accepts the same set, so
+ * the picker and the validator cannot drift apart.
+ */
+export const DOCUMENT_EXTENSIONS = [".md", ".markdown", ".txt", ".csv"] as const;
+
+export const DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
+
+/** The extracted text is deliberately not part of this: it can be long, and the
+ * list view only needs to name the document. */
+export const documentSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  mimeType: z.string(),
+  byteSize: z.number(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
 export const knowledgeSummarySchema = z.object({
   pageId: z.string(),
   posts: z.number(),
@@ -91,6 +110,7 @@ export const knowledgeSummarySchema = z.object({
   draftProducts: z.number(),
   faqs: z.number(),
   policies: z.number(),
+  documents: z.number(),
   chunks: z.number(),
   unembeddedChunks: z.number(),
   lastSyncedAt: z.string().nullable(),
@@ -104,4 +124,5 @@ export type CreateFaqInput = z.infer<typeof createFaqSchema>;
 export type Policy = z.infer<typeof policySchema>;
 export type CreatePolicyInput = z.infer<typeof createPolicySchema>;
 export type Post = z.infer<typeof postSchema>;
+export type Document = z.infer<typeof documentSchema>;
 export type KnowledgeSummary = z.infer<typeof knowledgeSummarySchema>;

@@ -1,9 +1,8 @@
 import { Badge } from "@astryxdesign/core/Badge";
 import { Button } from "@astryxdesign/core/Button";
-import { Card } from "@astryxdesign/core/Card";
-import { Heading } from "@astryxdesign/core/Heading";
 import { HStack } from "@astryxdesign/core/HStack";
 import { Link } from "@astryxdesign/core/Link";
+import { Section } from "@astryxdesign/core/Section";
 import { Text } from "@astryxdesign/core/Text";
 import { VStack } from "@astryxdesign/core/VStack";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,6 +13,7 @@ import {
   resyncPage,
 } from "../../features/knowledge/api.ts";
 import { pagesQueryOptions } from "../../features/pages/api.ts";
+import { Page } from "../../lib/page.tsx";
 
 export const Route = createFileRoute("/_app/onboarding")({
   loader: ({ context }) => context.queryClient.ensureQueryData(pagesQueryOptions),
@@ -57,15 +57,11 @@ function OnboardingPage() {
   });
 
   return (
-    <VStack gap={6}>
-      <VStack gap={1}>
-        <Heading level={1}>Get live</Heading>
-        <Text type="supporting">
-          Four steps between connecting a Page and letting the bot answer.
-        </Text>
-      </VStack>
-
-      <Card>
+    <Page
+      title="Get live"
+      description="Four steps between connecting a Page and letting the bot answer."
+    >
+      <Section>
         <VStack gap={5}>
           <Step
             index={1}
@@ -126,16 +122,17 @@ function OnboardingPage() {
           />
           <Link href="/knowledge">Go to Knowledge</Link>
         </VStack>
-      </Card>
+      </Section>
 
       {summary.data ? (
         <HStack align="center" gap={3}>
           <Badge label={`${summary.data.products} products`} variant="neutral" />
           <Badge label={`${summary.data.faqs} FAQs`} variant="neutral" />
           <Badge label={`${summary.data.policies} policies`} variant="neutral" />
+          <Badge label={`${summary.data.documents} documents`} variant="neutral" />
           <Badge label={`${summary.data.chunks} chunks`} variant="neutral" />
         </HStack>
       ) : null}
-    </VStack>
+    </Page>
   );
 }

@@ -1,5 +1,6 @@
 import {
   createProductForPage,
+  deleteChunksForSource,
   deleteProductForPage,
   findProductForPage,
   listProductsForPage,
@@ -110,6 +111,9 @@ productsRoute.delete("/:id", async (c) => {
   if (!removed) {
     throw new HTTPException(404, { message: "Product not found" });
   }
+
+  // Without this the deleted product stays retrievable, and the bot keeps quoting it.
+  await deleteChunksForSource(db, pageId, "product", c.req.param("id"));
 
   return c.json({ success: true });
 });

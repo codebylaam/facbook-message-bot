@@ -37,7 +37,7 @@ const PROFILE = {
   about: "Handmade cotton clothing from Dhaka",
   description: null,
   phone: "01700000000",
-  address: "Mirpur, Dhaka",
+  location: { street: "Mirpur", city: "Dhaka" },
   website: null,
   emails: null,
   hours: null,
