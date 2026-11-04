@@ -11,7 +11,7 @@
 - Wants a proper, explicit step-by-step plan before implementation work. Confidence: 0.85
 - Prefers the plan persisted in a `Plan.md` file in the repo rather than only in chat. Confidence: 0.8
 - Executes a plan incrementally, delegating it phase-by-phase with terse directives (e.g. "implement phase 1", "commit phase 1 and implement phase 2", "implement phase 5", "okay implement it") rather than requesting the whole plan in one go. Confidence: 0.8
-- Wants completed work committed to git at each phase/milestone before starting the next one. Confidence: 0.6
+- Wants completed work committed to git at each phase/milestone before starting the next one, requesting it with a terse plain directive (e.g. "commit phase 1", "commit all code"). Confidence: 0.65
 - Prioritises speed of delivery and wants plan phases chained without pausing for confirmation (e.g. "fast complete phase 6 work then do the phase 7") — the next phase should begin as soon as the previous one is done. Confidence: 0.6
 - When a clarifying question was declined or misunderstood, asks for it to be re-explained plainly. Confidence: 0.5
 - Wants technical terms/jargon (e.g. embeddings) explained in plain, non-technical language; doesn't want unfamiliar concepts assumed as understood. Confidence: 0.5
